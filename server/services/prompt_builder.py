@@ -8,7 +8,7 @@ def load_text(path):
     with open(path, 'r', encoding='utf-8') as f:
         return f.read()
 
-def get_combined_prompt(user_input, platform, age_range):
+def get_combined_prompt(user_input, platform, age_range, region=None):
     # 1. This funtion DETECTS the LANGUAGE of the input
     detected_language = detect(user_input)  # es', 'fr', 'ru', 'en', etc
 
@@ -30,9 +30,19 @@ def get_combined_prompt(user_input, platform, age_range):
 
     # 5. Mistral will always answer in the language input
     #    If the language of the input is in our cutomized prompts per languages, it will answer in that manner, otherwise will answer in for example japanese but with the styled prompt in english
-    response_instruction = f"\n\nRespond in {detected_language}. Adapt tone and cultural references accordingly."
-
+    #    Also, there will be a new "region" button in the front so it can detect the variety of Spanish so it can answer in mexican, spanish, colombian, etc style. 
+    #    and the same for English (UK style, American style, etc)
+    if detected_language == "es" and region:
+        response_instruction = f"\n\nRespond in Spanish adapted to the linguistic style of {region}."
+    elif detected_language == "en" and region:
+        response_instruction = f"\n\nRespond in English adapted to the linguistic style of {region}."
+    else:
+        response_instruction = f"\n\nRespond in {detected_language}. Adapt tone and cultural references accordingly."
     # 6. Combining prompts
     full_prompt = f"{language_prompt}\n\n{platform_prompt}\n\n{age_prompt}{response_instruction}"
 
     return full_prompt
+
+
+
+  
