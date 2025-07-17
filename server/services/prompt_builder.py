@@ -21,7 +21,7 @@ def get_combined_prompt(user_input, platform, age_range, region=None):
     # 3. Building the paths of the desired platform and age group
     #    In the front there are 2 dropdown buttons for the user to select the platform and age group
     platform_prompt_path = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
-    age_prompt_path = os.path.join(BASE_DIR, "prompts", "age_group", f"{age_range}.txt")
+    age_prompt_path = os.path.join(BASE_DIR, "prompts", "age_groups", f"{age_range}.txt")
 
     # 4. Loading the chosen prompts
     language_prompt = load_text(language_prompt_path)
