@@ -25,3 +25,26 @@ Instalar dependencias
 ```textplain
 pip install -r requirements.txt
 ```
+
+Abre 2 terminales:
+Terminal backend:
+
+```bash
+cd server
+uvicorn app.main:app --reload --port 8001
+```
+
+Terminal frontend:
+
+Windows
+```bash
+cd client
+python app.py 
+```
+
+Linux/Mac
+
+```bash
+cd client
+python app.py 
+```
