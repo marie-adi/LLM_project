@@ -1,10 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-<<<<<<< HEAD:server/main.py
 from server.groq_wrapper import generate_response
-=======
-from app.groq_wrapper import generate_response
->>>>>>> 39adcdb9f05f96018d059e0d34e372b990ebf680:server/app/main.py
 from typing import Literal, Optional
 
 
