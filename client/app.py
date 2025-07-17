@@ -1,44 +1,44 @@
 import gradio as gr
+import requests
 
-def welcome(name):
-    return f"Welcome to Gradio, {name}!"
+API_URL = "http://127.0.0.1:8001/generate"  # Asegúrate que coincida con tu puerto backend
 
-js = """
-function createGradioAnimation() {
-    var container = document.createElement('div');
-    container.id = 'gradio-animation';
-    container.style.fontSize = '2em';
-    container.style.fontWeight = 'bold';
-    container.style.textAlign = 'center';
-    container.style.marginBottom = '20px';
-
-    var text = 'Welcome to Gradio!';
-    for (var i = 0; i < text.length; i++) {
-        (function(i){
-            setTimeout(function(){
-                var letter = document.createElement('span');
-                letter.style.opacity = '0';
-                letter.style.transition = 'opacity 0.5s';
-                letter.innerText = text[i];
-
-                container.appendChild(letter);
-
-                setTimeout(function() {
-                    letter.style.opacity = '1';
-                }, 50);
-            }, i * 250);
-        })(i);
+def generar_contenido(prompt, audience, tone, platform, language):
+    payload = {
+        "prompt": prompt,
+        "audience": audience,
+        "tone": tone,
+        "platform": platform,
+        "language": language
     }
+    try:
+        response = requests.post(API_URL, json=payload)
+        response.raise_for_status()
+        return response.json().get("output", "Sin respuesta")
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-    var gradioContainer = document.querySelector('.gradio-container');
-    gradioContainer.insertBefore(container, gradioContainer.firstChild);
+with gr.Blocks(title="Generador de Contenido AI con FastAPI + Groq") as demo:
+    gr.Markdown("## Generador de Contenido AI con FastAPI + Groq")
 
-    return 'Animation created';
-}
-"""
-with gr.Blocks(js=js) as demo:
-    inp = gr.Textbox(placeholder="What is your name?")
-    out = gr.Textbox()
-    inp.change(welcome, inp, out)
+    prompt = gr.Textbox(label="Prompt base", placeholder="Escribe tu idea o tema aquí...", lines=2)
 
-demo.launch()
+    with gr.Row():
+        audience = gr.Dropdown(label="Audiencia", choices=["estudiantes", "profesionales", "niños", "público general"])
+        tone = gr.Dropdown(label="Tono", choices=["formal", "informal", "amigable", "técnico", "divertido"])
+
+    with gr.Row():
+        platform = gr.Dropdown(label="Plataforma", choices=["blog", "instagram", "linkedin", "twitter", "tiktok"])
+        language = gr.Dropdown(label="Idioma", choices=["español", "inglés", "francés", "alemán"])
+
+    btn = gr.Button("Generar Contenido")
+    output = gr.Textbox(label="Resultado", lines=10)
+
+    btn.click(
+        generar_contenido,
+        inputs=[prompt, audience, tone, platform, language],
+        outputs=output
+    )
+
+if __name__ == "__main__":
+    demo.launch()
