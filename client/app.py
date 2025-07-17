@@ -3,76 +3,95 @@ import requests
 
 API_URL = "http://127.0.0.1:8001/generate"
 
-def generar_contenido(prompt, audience, tone, platform, language):
+def generate_content(prompt, age_group, platform, region):
     payload = {
         "prompt": prompt,
-        "audience": audience,
-        "tone": tone,
+        "age_group": age_group,
         "platform": platform,
-        "language": language
+        "region": region
     }
     try:
         response = requests.post(API_URL, json=payload)
         response.raise_for_status()
-        return response.json().get("output", "Sin respuesta")
+        return response.json().get("output", "No response received.")
     except Exception as e:
         return f"❌ Error: {str(e)}"
 
 with gr.Blocks(css="""
-#prompt-box textarea {
-    font-size: 1rem;
-    padding: 1rem;
-    border-radius: 1rem;
-    background-color: #1e1e1e;
+body {
+    background-color: #fefefe;
+    color: #333;
+    font-family: 'Segoe UI', sans-serif;
 }
+#prompt-box textarea,
 #output-box textarea {
+    background-color: #fff9ec;
+    color: #333;
     font-size: 1rem;
     padding: 1rem;
     border-radius: 1rem;
-    background-color: #111;
-    color: #f1f1f1;
+    border: 1px solid #ccc;
+}
+#prompt-box textarea::placeholder {
+    color: #888;
 }
 #generate-button {
-    background: linear-gradient(to right, #0d6efd, #6610f2);
-    color: white;
+    background: linear-gradient(to right, #ffe1a0, #ffe9b9);
+    color: black;
     font-weight: bold;
     padding: 0.75rem 1.5rem;
     border-radius: 1rem;
     margin-top: 1rem;
+    transition: all 0.3s ease-in-out;
+}
+#generate-button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 """) as demo:
-
-    gr.Markdown("## 🧠 Generador de Contenido AI")
+    
+    gr.Markdown("<h2 style='text-align: center;'>🧠💰 AI Finance Content Generator</h2>")
 
     with gr.Column():
         prompt = gr.Textbox(
-            label="¿Qué quieres generar?",
-            placeholder="Escribe tu idea aquí...",
+            label="What do you want to generate?",
+            placeholder="Describe your idea or request...",
             lines=6,
             elem_id="prompt-box"
         )
 
         with gr.Row():
-            audience = gr.Dropdown(
-                label="Audiencia", choices=["gen z", "millenials", "estudiantes", "profesionales", "niños", "público general"], value="niños"
-            )
-            tone = gr.Dropdown(
-                label="Tono", choices=["formal", "informal", "amigable", "técnico", "divertido"], value="amigable"
+            age_group = gr.Dropdown(
+                label="Age group",
+                choices=["08-11", "12-15", "16-19", "20-25", "26-85"],
+                value="12-15"
             )
             platform = gr.Dropdown(
-                label="Plataforma", choices=["blog", "instagram", "linkedin", "x", "tiktok"], value="tiktok"
+                label="Platform",
+                choices=["instagram", "twitter", "linkedin"],
+                value="instagram"
             )
-            language = gr.Dropdown(
-                label="Idioma", choices=["español", "inglés", "francés", "alemán"], value="español"
-            )
+            region = gr.Dropdown(
+                label="Region",
+                choices=[
+                    ("Spanish (Mexico)", "es_MX"),
+                    ("Spanish (Spain)", "es_ES"),
+                    ("Spanish (Argentina)", "es_AR"),
+                    ("English (United States)", "en_US"),
+                    ("English (United Kingdom)", "en_UK"),
+                    ("English (Australia)", "en_AU"),
+                    ("French (France)", "fr_FR"),   
+                    ("Russian (Russia)", "ru_RU"),
+                        ],
+             value="es_MX"  
+                )
+        submit_btn = gr.Button("🚀 Generate", elem_id="generate-button")
 
-        btn = gr.Button("🚀 Generar Contenido", elem_id="generate-button")
+        output = gr.Textbox(label="Generated text", lines=10, elem_id="output-box")
 
-        output = gr.Textbox(label="Resultado", lines=10, elem_id="output-box")
-
-        btn.click(
-            generar_contenido,
-            inputs=[prompt, audience, tone, platform, language],
+        submit_btn.click(
+            generate_content,
+            inputs=[prompt, age_group, platform, region],
             outputs=output
         )
 
