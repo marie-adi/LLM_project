@@ -46,5 +46,5 @@ Linux/Mac
 
 ```bash
 cd client
-python app.py 
+python3 app.py 
 ```
