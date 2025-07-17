@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel # Import BaseModel for request and response validation
 from server.groq_wrapper import generate_response
 from typing import Literal, Optional
 from server.agents.marketing_agent import marketing_agent
@@ -31,7 +31,7 @@ def read_root():
 @app.post("/agent/marketing", response_model=ResponseOutput)
 async def agent_generate(data: ContentRequest):
     try:
-        result = marketing_agent.run(data.prompt)
+        result = marketing_agent.invoke(data.dict()) # CAMBIAR AQUI PARA ENVIAR TODO EL CONTENT REQUEST?? a model_dump
         return ResponseOutput(output=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

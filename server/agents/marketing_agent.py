@@ -14,7 +14,14 @@ llm = ChatGroq(
     temperature=0.7
 )
 
-def generar_post(prompt: str, platform: str = "twitter", age_range: str = "20-25", region: str = "Spain") -> str:
+
+def generar_post(data: dict) -> str:
+    prompt = data.get("prompt")
+    platform = data.get("platform", "twitter")
+    age_range = data.get("audience", "20-25")
+    region = data.get("region", "Spain")
+    if not prompt:
+        return "❌ Error: Prompt is required."
     prompt_final = get_combined_prompt(prompt, platform, age_range, region)
     prompt_final += f"\n\nIdea base: {prompt}"
     
@@ -30,7 +37,7 @@ def generar_post(prompt: str, platform: str = "twitter", age_range: str = "20-25
 # Definir herramientas
 tools = [
     Tool.from_function(
-        func=lambda prompt: generar_post(prompt),
+        func=lambda prompt: generar_post,
         name="GeneradorDeContenido",
         description="Genera contenido escrito para redes sociales."
     )
