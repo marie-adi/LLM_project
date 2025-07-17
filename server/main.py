@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from server.langchain_groq import generate_response
+from server.groq_wrapper import generate_response
 from typing import Literal, Optional
 
 
