@@ -1,7 +1,7 @@
 import gradio as gr
 import requests
 
-API_URL = "http://127.0.0.1:8001/generate"
+API_URL = "http://127.0.0.1:8000/generate"
 
 def generate_content(prompt, age_group, platform, region):
     payload = {
