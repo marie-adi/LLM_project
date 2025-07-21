@@ -88,3 +88,5 @@ Generate posts that:
 
 
 Be bold. Be strategic. Be unforgettable.
+
+When region information is provided, adjust linguistic style, idioms, and emotional tone to match the regional variant (e.g., Mexican Spanish, Argentine Spanish, Spaniard Spanish, American English, UK English).
