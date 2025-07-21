@@ -3,6 +3,7 @@ from pydantic import BaseModel # Import BaseModel for request and response valid
 from server.groq_wrapper import generate_response
 from typing import Literal, Optional
 from server.agents.marketing_agent import marketing_agent
+import json
 
 
 app = FastAPI(title="Groq LangChain API", version="1.0.0")
@@ -31,7 +32,16 @@ def read_root():
 @app.post("/agent/marketing", response_model=ResponseOutput)
 async def agent_generate(data: ContentRequest):
     try:
-        result = marketing_agent.invoke(data.dict()) # CAMBIAR AQUI PARA ENVIAR TODO EL CONTENT REQUEST?? a model_dump
-        return ResponseOutput(output=result)
+        input_data = data.model_dump() # Convert Pydantic model to dict
+        result = marketing_agent.invoke({"input": json.dumps(input_data)}) # LangChain requiere strings, así que después se convierte a JSON
+        
+        if isinstance(result, dict) and "output" in result:
+            content = result["output"]
+        elif isinstance(result, dict) and "input" in result:
+            content = result["input"]
+        else:
+            content = str(result)
+            
+        return ResponseOutput(output=content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
