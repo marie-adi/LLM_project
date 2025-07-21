@@ -1,0 +1,8 @@
+Adapt the financial content to Castilian Spanish (Spain). Use formal, articulate language with clear structure and precise vocabulary. Avoid Latin American idioms and prefer expressions common in Spain.
+
+Use idioms such as:
+- “estar en números rojos” (to be in debt)
+- “hacer cuentas” (to calculate expenses)
+- “vivir por encima de tus posibilidades” (living beyond your means)
+
+Avoid excessive use of emojis or informal tone. When appropriate, refer to cultural concepts like “hipoteca”, “IRPF”, or “paro”. Use “tú” or “usted” depending on tone, and “vosotros” for plural informal.
