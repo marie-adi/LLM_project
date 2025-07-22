@@ -22,11 +22,20 @@ def get_combined_prompt(user_input, platform, age_range, region=None):
     #    In the front there are 2 dropdown buttons for the user to select the platform and age group
     platform_prompt_path = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
     age_prompt_path = os.path.join(BASE_DIR, "prompts", "age_groups", f"{age_range}.txt")
+    
+    print(f"[DEBUG] Loading language template: {language_prompt_path}")
+    print(f"[DEBUG] Loading platform template: {platform_prompt_path}")
+    print(f"[DEBUG] Loading age template: {age_prompt_path}")
 
     # 4. Loading the chosen prompts
-    language_prompt = load_text(language_prompt_path)
-    platform_prompt = load_text(platform_prompt_path)
-    age_prompt = load_text(age_prompt_path)
+    try:
+        language_prompt = load_text(language_prompt_path)
+        platform_prompt = load_text(platform_prompt_path)
+        age_prompt = load_text(age_prompt_path)
+        print(f"[DEBUG] Templates loaded successfully!")
+    except Exception as e:
+        print(f"[DEBUG] Error loading template: {str(e)}")
+        raise ValueError(f"Error loading templates: {str(e)}")
 
     # 5. Mistral will always answer in the language input
     #    If the language of the input is in our cutomized prompts per languages, it will answer in that manner, otherwise will answer in for example japanese but with the styled prompt in english
