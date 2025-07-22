@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from app.groq_wrapper import generate_response
-from app.langchain_groq import generate_response
+from server.groq_wrapper import generate_response
 from typing import Literal, Optional
 
 
@@ -11,12 +10,10 @@ class ResponseOutput(BaseModel):
     output: str
 
 class ContentRequest(BaseModel):
-    prompt: str               
-    topic: Optional[str] = None     
+    prompt: str                 
     audience: Optional[str] = None
-    tone: Optional[str] = None
     platform: Optional[str] = None
-    language: Optional[str] = None
+    region: Optional[str] = None
 
 @app.post("/generate", response_model=ResponseOutput)
 async def generate(data: ContentRequest):
