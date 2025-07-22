@@ -5,6 +5,7 @@ from typing import Literal, Optional
 #from server.agents import marketing_agent, finance_agent
 from server.agents.marketing_agent import marketing_agent
 from server.agents.finance_agent import finance_agent
+from server.tools.get_market_news import get_market_news
 import json
 
 
@@ -63,6 +64,23 @@ async def finance_agent_generate(data: ContentRequest):
             content = str(result)
             
         return ResponseOutput(output=content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class MarketNewsRequest(BaseModel):
+    ticker: str
+
+@app.post("/market-news", response_model=ResponseOutput)
+async def get_yahoo_market_news(data: MarketNewsRequest):
+    """
+    Endpoint para obtener noticias financieras de Yahoo Finance directamente.
+    
+    Acepta un ticker directo como 'AAPL', 'TSLA', 'BTC-USD', '^GSPC' (S&P 500), '^DJI' (Dow Jones), etc.
+    """
+    try:
+        # Llamamos directamente a la función get_market_news con el ticker
+        result = get_market_news(data.ticker)
+        return ResponseOutput(output=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
