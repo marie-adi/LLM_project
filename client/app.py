@@ -1,12 +1,12 @@
 import gradio as gr
 import requests
 
-API_URL = "http://127.0.0.1:8000/generate"
+API_URL = "http://127.0.0.1:8002/generate"
 
-def generate_content(prompt, age_group, platform, region):
+def generate_content(prompt, audience, platform, region):
     payload = {
         "prompt": prompt,
-        "age_group": age_group,
+        "audience": audience,
         "platform": platform,
         "region": region
     }
@@ -61,7 +61,7 @@ body {
         )
 
         with gr.Row():
-            age_group = gr.Dropdown(
+            audience = gr.Dropdown(
                 label="Age group",
                 choices=["08-11", "12-15", "16-19", "20-25", "26-85"],
                 value="12-15"
@@ -74,24 +74,57 @@ body {
             region = gr.Dropdown(
                 label="Region",
                 choices=[
-                    ("Spanish (Mexico)", "es_MX"),
-                    ("Spanish (Spain)", "es_ES"),
-                    ("Spanish (Argentina)", "es_AR"),
-                    ("English (United States)", "en_US"),
-                    ("English (United Kingdom)", "en_UK"),
-                    ("English (Australia)", "en_AU"),
-                    ("French (France)", "fr_FR"),   
-                    ("Russian (Russia)", "ru_RU"),
-                        ],
-             value="es_MX"  
-                )
+                    # English
+                    "English (Australia)",
+                    "English (Canada)",
+                    "English (Ireland)",
+                    "English (India)",
+                    "English (Kenya)",
+                    "English (Nigeria)",
+                    "English (New Zeland)",
+                    "English (Pakistani)",
+                    "English (United Kingdom)",
+                    "English (United States)",
+                    "English (South Africa)",
+
+                    # Spanish
+                    "Spanish (Argentina)",
+                    "Spanish (Bolivia)",
+                    "Spanish (Chile)",
+                    "Spanish (Colombia)",
+                    "Spanish (Cuba)",
+                    "Spanish (Ecuador)",
+                    "Spanish (Spain)",
+                    "Spanish (Mexico)",
+                    "Spanish (Peru)",
+                    "Spanish (Uruguay)",
+                    "Spanish (Veneuela)",
+
+                    # French
+                    "French (Belgium)",
+                    "French (Canada)",
+                    "French (Switzerland)",
+                    "French (Ivory Coast)",
+                    "French (Cameroon)",
+                    "French (Algeria)",
+                    "French (France)",
+                    "French (Morocco)",
+                    "French (Senegal)",
+                    "French (Tunisia)",
+
+                    # Fallback
+                    "Other"
+             ],
+        value="Spanish (Mexico)"
+    )
+
         submit_btn = gr.Button("🚀 Generate", elem_id="generate-button")
 
         output = gr.Textbox(label="Generated text", lines=10, elem_id="output-box")
 
         submit_btn.click(
             generate_content,
-            inputs=[prompt, age_group, platform, region],
+            inputs=[prompt, audience, platform, region],
             outputs=output
         )
 
