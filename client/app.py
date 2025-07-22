@@ -1,7 +1,7 @@
 import gradio as gr
 import requests
 
-API_URL = "http://127.0.0.1:8002/generate"
+API_URL = "http://127.0.0.1:8000/generate"
 
 def generate_content(prompt, audience, platform, region):
     payload = {
@@ -81,7 +81,7 @@ body {
                     "English (India)",
                     "English (Kenya)",
                     "English (Nigeria)",
-                    "English (New Zeland)",
+                    "English (New Zealand)",
                     "English (Pakistani)",
                     "English (United Kingdom)",
                     "English (United States)",
@@ -98,7 +98,7 @@ body {
                     "Spanish (Mexico)",
                     "Spanish (Peru)",
                     "Spanish (Uruguay)",
-                    "Spanish (Veneuela)",
+                    "Spanish (Venezuela)",
 
                     # French
                     "French (Belgium)",
