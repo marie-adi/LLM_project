@@ -3,8 +3,9 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.prompts import ChatPromptTemplate
+from .services.prompt_builder import get_combined_prompt
 
-#from app.prompts.blog import get_blog_prompt
+
 
 # Cargar variables de entorno
 load_dotenv()
@@ -21,21 +22,21 @@ async def generate_response(data) -> str:
     """
     Genera una respuesta usando Groq a través de LangChain
     """
-    prompt_base = data.prompt
-    topic = data.topic or "general"
-    audience = data.audience or "general audience"
-    tone = data.tone or "neutral"
+    user_input = data.prompt
     platform = data.platform or "blog"
-    language = data.language or "Spanish"
+    age_range = data.audience or "20-25"
+    region = data.region or "Spain"
 
-    # Construir prompt final combinando todos los parámetros
-    prompt_final = (
-        f"Genera un contenido en {language} sobre el tema '{topic}' adaptado para {audience}.\n"
-        f"Tono: {tone}.\n"
-        f"Plataforma: {platform}.\n"
-        f"Texto base o idea: {prompt_base}\n\n"
-        "El contenido debe estar listo para publicar."
+    prompt_final = get_combined_prompt(
+        user_input=user_input,
+        platform=platform,
+        age_range=age_range,
+        region=region
     )
+
+    # Añadimos la idea base al final, como nota creativa
+    prompt_final += f"\n\nIdea base: {user_input}"
+
     
     try:
         # Crear template de prompt
