@@ -23,7 +23,7 @@ async def generate_response(data) -> str:
     Genera una respuesta usando Groq a través de LangChain
     """
     user_input = data.prompt
-    platform = data.platform or "blog"
+    platform = data.platform or "twitter"
     age_range = data.audience or "20-25"
     region = data.region or "Spain"
 
