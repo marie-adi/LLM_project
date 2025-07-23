@@ -75,7 +75,6 @@ def get_combined_prompt(user_input, platform, age_range, region=None):
     # 1. Detect language of user input
     detected_language = detect(user_input)  # Example: 'es', 'fr', 'en'
 
-    # 2. Paths for static prompt modules
     base_prompt_path      = os.path.join(BASE_DIR, "prompts", "base.txt")
     language_prompt_path  = os.path.join(BASE_DIR, "prompts", "languages", f"{detected_language}.txt")
     platform_prompt_path  = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
@@ -95,6 +94,8 @@ def get_combined_prompt(user_input, platform, age_range, region=None):
     print(f"[DEBUG] Loading age template: {age_prompt_path}")
 
     # 4. Loading the chosen prompts
+    base_prompt     = load_text(base_prompt_path)
+    
     try:
         language_prompt = load_text(language_prompt_path)
         platform_prompt = load_text(platform_prompt_path)
