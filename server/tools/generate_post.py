@@ -25,14 +25,11 @@ llm_turbo = ChatGroq(
 def generar_post(input: str) -> str:
     # Manejo seguro de JSON
     try:
-        # Verificar si el input parece un JSON válido
-        if isinstance(input, str) and input.strip() and input.strip().startswith("{"):
-            data = json.loads(input)
-        else:
-            # Si no es JSON, tratar el input completo como prompt
-            data = {"prompt": input}
+        print(f"[DEBUG]: DATA received for post generation : {json.loads(input)}")
+        data = json.loads(input)
     except json.JSONDecodeError:
         # Si falla el parsing de JSON, usar el input como prompt
+        print("[DEBUG]: Input is not valid JSON, using as prompt")
         data = {"prompt": input}
     
 

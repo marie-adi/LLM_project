@@ -37,6 +37,9 @@ def read_root():
 async def agent_generate(data: ContentRequest):
     try:
         input_data = data.model_dump() # Convert Pydantic model to dict
+        print(f"[DEBUG] INPUT MODEL DUMP: {input_data}")
+        json_string = json.dumps(input_data)  # Convert dict to JSON string
+        print(f"[DEBUG] JSON STRING: {json_string}")
         result = marketing_agent.invoke({"input": json.dumps(input_data)}) # LangChain requiere strings, así que después se convierte a JSON
         
         if isinstance(result, dict) and "output" in result:
@@ -54,7 +57,11 @@ async def agent_generate(data: ContentRequest):
 async def finance_agent_generate(data: ContentRequest):
     try:
         input_data = data.model_dump()  # Convert Pydantic model to dict
-        result = finance_agent.invoke({"input": json.dumps(input_data)})  # LangChain requiere strings, así que después se convierte a JSON
+        
+        print(f"[DEBUG] INPUT MODEL DUMP: {input_data}")
+        json_string = json.dumps(input_data)  # Convert dict to JSON string
+        print(f"[DEBUG] JSON STRING: {json_string}")
+        result = finance_agent.invoke({"input": json_string})  # LangChain requiere strings, así que después se convierte a JSON
         
         if isinstance(result, dict) and "output" in result:
             content = result["output"]

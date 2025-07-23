@@ -21,15 +21,27 @@ llm = ChatGroq(
 
 # Registrar tools
 tools = [
-    Tool.from_function(
-        func=get_market_news,
-        name="NoticiasFinancieras",
-        description="Consulta datos financieros usando ÚNICAMENTE el ticker exacto sin texto explicativo. EJEMPLOS CORRECTOS: ^GSPC, ^DJI, AAPL, BTC-USD. EJEMPLOS INCORRECTOS: ^DJI (Dow Jones), indices más altos, S&P 500. IMPORTANTE: Para cada ticker, haz una consulta separada."
-    ),
+    # Tool.from_function(
+    #     func=get_market_news,
+    #     name="NoticiasFinancieras",
+    #     description="Consulta datos financieros usando ÚNICAMENTE el ticker exacto sin texto explicativo. EJEMPLOS CORRECTOS: ^GSPC, ^DJI, AAPL, BTC-USD. EJEMPLOS INCORRECTOS: ^DJI (Dow Jones), indices más altos, S&P 500. IMPORTANTE: Para cada ticker, haz una consulta separada."
+    # ),
     Tool.from_function(
         func=generar_post,
         name="GeneradorDeContenido",
-        description="Genera análisis financieros, explicaciones educativas y contenido estructurado. Útil para sintetizar información de múltiples fuentes, explicar conceptos financieros, comparar datos y crear resúmenes."
+        description="""Genera análisis financieros, explicaciones educativas y contenido estructurado para redes sociales."""
+        
+# IMPORTANTE: Para usar esta herramienta, DEBES PASAR UN JSON COMPLETO con el siguiente formato:
+# {"prompt": "tu texto aquí", "platform": "plataforma", "audience": "grupo-edad", "region": "region"}
+
+# - Para "platform" usa: "linkedin", "twitter" o "instagram"
+# - Para "audience" usa: "26-33" para jóvenes profesionales
+# - Para "region" usa: "Spain" para España
+
+# EJEMPLO CORRECTO: 
+# {"prompt": "Análisis de Amazon", "platform": "linkedin", "audience": "26-33", "region": "Spain"}
+
+# NO envíes solo el texto! Siempre usa el formato JSON completo."""
     )
 ]
 
@@ -62,7 +74,8 @@ PROCESO DE TRABAJO:
 3. Utiliza GeneradorDeContenido para analizar y explicar los datos recopilados
 4. Proporciona conclusiones claras y educativas
 
-Para preguntas sobre "índices más altos", consulta los principales índices y compara sus valores."""
+Para preguntas sobre "índices más altos", consulta los principales índices y compara sus valores."
+"""
 
 # Crear el agente maestro
 finance_agent = initialize_agent(
@@ -74,3 +87,4 @@ finance_agent = initialize_agent(
     system_message=system_message,
     max_iterations=10  # Aumentar intentos para investigación completa con múltiples consultas individuales
 )
+

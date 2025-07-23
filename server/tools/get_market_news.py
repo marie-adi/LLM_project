@@ -1,5 +1,3 @@
-# server/agents/tools/get_market_news.py
-
 import yfinance as yf
 from datetime import datetime, timedelta
 import json
@@ -10,6 +8,8 @@ def get_market_news(input: str) -> str:
 
     Input puede ser un ticker directo o un JSON con el campo prompt.
     """
+    
+    print("[DEBUG]: INTENTO NEWS")
     try:
         # Primero, tratar el input como texto plano
         ticker_input = input.strip() if input else ""
