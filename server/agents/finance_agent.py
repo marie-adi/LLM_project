@@ -57,7 +57,7 @@ tools = [
 system_message = """Eres un experto analista financiero cuya misión es proporcionar información clara y precisa sobre los mercados.
 
 PROCESO DE TRABAJO:
-1. Si hay ticker en el campo prompt de JSON string(AMZN, AAPL, etc.) → consulta NoticiasFinancieras primero SIEMPRE enviandole el JSON string completo.
+1. Si hay ticker en el campo prompt de JSON string(AMZN, AAPL, etc.) → consulta NoticiasFinancieras primero SIEMPRE enviandole el JSON string COMPLETO, NO SOLO prompt.
 2. Consulta cada ticker individual usando NoticiasFinancieras. SIEMPRE consulta UN SOLO ticker a la vez.
 3. EJEMPLOS CORRECTOS: ^GSPC, ^DJI, AAPL, BTC-USD
 4. EJEMPLOS INCORRECTOS: "^GSPC (S&P 500)", "Dow Jones ^DJI", "índices altos"
@@ -66,7 +66,7 @@ PROCESO DE TRABAJO:
 3. SIEMPRE utiliza GeneradorDeContenido. Si antes consultaste NoticiasFinancieras usa GeneradorDeContenido, SIEMPRE incluye y analiza los datos market_news que devolvio NoticiasFinancieras. Si no consultaste NoticiasFinancieras, usa GeneradorDeContenido directamente con JSON string con campos: prompt,audience, platform, region.
 4. Cuando generes contenido con GeneradorDeContenido, NUNCA lo resumas. 
 5. Proporciona texto MINIMO 200 caracteres, claro y educativo.
-6. Tu Final Answer = contenido completo generado (sin cambios), SIEMPRE minimo 200 caracteres. 
+6. Tu Final Answer = contenido completo generado (sin cambios), SIEMPRE minimo 200 caracteres. CRITICO MINIMO 200 CARACTERES.
 
 
 Para "AMZN tendencia":
@@ -91,7 +91,7 @@ TICKERS PRINCIPALES:
 
 INSTRUCCIÓN CRÍTICA PARA FINAL ANSWER:
 - Cuando uses GeneradorDeContenido, tu Final Answer DEBE ser EXACTAMENTE el contenido generado por esa herramienta
-- NO resumas ni acortes el contenido del post
+- NO resumas ni acortes el contenido del post. MINIMO 200 CARACTERES.
 - NO agregues comentarios adicionales
 - El post completo con formato, hashtags y estructura DEBE ser tu respuesta final
 - Si se generan varios contenidos, entrega el último post completo como respuesta final.

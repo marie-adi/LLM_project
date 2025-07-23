@@ -30,8 +30,7 @@ Abre 2 terminales:
 Terminal backend:
 
 ```bash
-cd server
-uvicorn app.main:app --reload --port 8001
+uvicorn server.main:app --reload --port 8001
 ```
 
 Terminal frontend:
