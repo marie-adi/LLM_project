@@ -24,6 +24,7 @@ llm_turbo = ChatGroq(
 
 def generar_post(input: str) -> str:
     # Manejo seguro de JSON
+    print("[DEBUG]: ######### INTENTO POST  ###########")
     try:
         print(f"[DEBUG]: DATA received for post generation : {json.loads(input)}")
         data = json.loads(input)
