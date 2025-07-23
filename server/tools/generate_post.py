@@ -8,9 +8,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-llm = ChatGroq(
+
+# Instancias de LLMs disponibles
+llm_llama = ChatGroq(
     groq_api_key=os.getenv("GROQ_API_KEY"),
     model_name="llama-3.1-8b-instant",
+    temperature=0.7
+)
+# Puedes agregar aquí otro modelo, por ejemplo "gpt-3.5-turbo" (ajusta el nombre según disponibilidad en Groq)
+llm_turbo = ChatGroq(
+    groq_api_key=os.getenv("GROQ_API_KEY"),
+    model_name="llama-3.3-70b-versatile",
     temperature=0.7
 )
 
@@ -27,10 +35,12 @@ def generar_post(input: str) -> str:
         # Si falla el parsing de JSON, usar el input como prompt
         data = {"prompt": input}
     
+
     prompt = data.get("prompt")
     platform = data.get("platform", "twitter")
     age_range = data.get("audience", "20-25")
     region = data.get("region", "Spain")
+    model = data.get("model", "turbo")  # Por defecto llama
 
     if not prompt:
         return "❌ Error: Prompt is required."
@@ -44,5 +54,14 @@ def generar_post(input: str) -> str:
     ])
 
     formatted_prompt = chat_template.format_messages()
-    response = llm.invoke(formatted_prompt)
+
+    # Selección del modelo
+    if model == "turbo":
+        llm_selected = llm_turbo
+    else:
+        llm_selected = llm_llama
+        
+    print(f"[DEBUG] Loading llm model: {model}")
+
+    response = llm_selected.invoke(formatted_prompt)
     return response.content
