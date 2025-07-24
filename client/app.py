@@ -2,9 +2,8 @@ import gradio as gr
 import requests
 
 API_ENDPOINTS = {
-    "General": "http://127.0.0.1:8001/generate",
-    "Marketing": "http://127.0.0.1:8001/agent/marketing",
-    "Finanzas": "http://127.0.0.1:8001/agent/finance"
+    "Horus": "http://127.0.0.1:8001/generate",
+    "Isis": "http://127.0.0.1:8001/agent/finance"
 }
 
 # Función que retorna formato completo para ChatInterface y copia
@@ -45,27 +44,27 @@ with gr.Blocks(css="""
 """) as demo:
 
     # Título
-    gr.Markdown("<div id='header'>🤖 FinancIA — Asistente de Contenido Financiero</div>")
+    gr.Markdown("<div id='header'>🤖 FinancIA — Financial Content Assistant</div>")
 
     # Selector de modelo
     model_selector = gr.Dropdown(
-        choices=["General", "Marketing", "Finanzas"],
-        value="General",
+        choices=["Horus", "Isis"],
+        value="Horus",
         label="Modelo"
     )
 
     # Ajustes toggle
     show_settings = gr.State(value=False)
-    toggle_btn = gr.Button("⚙️ Ajustes")
+    toggle_btn = gr.Button("⚙️ Segmentation")
 
     with gr.Column(visible=False) as config_panel:
         audience = gr.Dropdown(
-            label="Grupo de edad",
+            label="Age group",
             choices=["08-11", "12-15", "16-19", "20-25", "26-85"],
             value="20-25"
         )
         platform = gr.Dropdown(
-            label="Plataforma",
+            label="Plataform",
             choices=["instagram", "twitter", "linkedin"],
             value="instagram"
         )
@@ -130,7 +129,7 @@ with gr.Blocks(css="""
         fn=chat_wrapper,
         chatbot=gr.Chatbot(elem_id="chatbox", type="messages"),
         type="messages",
-        textbox=gr.Textbox(placeholder="¿Qué contenido necesitas hoy?", scale=9),
+        textbox=gr.Textbox(placeholder="What content do you need today?", scale=9),
         additional_inputs=[model_selector, audience, platform, region],
         additional_outputs=[output_text],
         title="",
