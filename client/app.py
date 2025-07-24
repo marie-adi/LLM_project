@@ -6,7 +6,7 @@ API_ENDPOINTS = {
     "Isis": "http://127.0.0.1:8001/agent/finance"
 }
 
-# Función que retorna formato completo para ChatInterface y copia
+# Se guarda el último mensaje generado
 def chat_wrapper(message, history, model, audience, platform, region):
     payload = {
         "prompt": message,
@@ -21,8 +21,8 @@ def chat_wrapper(message, history, model, audience, platform, region):
     except Exception as e:
         output = f"❌ Error: {str(e)}"
 
-    # ✅ Devuelve mensaje como lista de tipo "messages"
-    return [{"role": "assistant", "content": output}], gr.update(value=output, visible=True)
+    # Devolvemos el mensaje para el chat y lo guardamos como estado
+    return [{"role": "assistant", "content": output}], output
 
 with gr.Blocks(css="""
 #header {
@@ -115,34 +115,38 @@ with gr.Blocks(css="""
         value="Spanish (Mexico)"
         )
 
-    # Campo copiable, oculto hasta que haya respuesta
-    output_text = gr.Textbox(
-        label="Haz clic para copiar la respuesta ✂️",
-        visible=False,
-        interactive=False,
-        lines=6,
-        show_copy_button=True
-    )
+   # Estado para guardar respuesta
+    last_response = gr.State()
 
-    # Chat Interface con output completo y botón de copiar
+    # Chat principal
     chatbot = gr.ChatInterface(
         fn=chat_wrapper,
         chatbot=gr.Chatbot(elem_id="chatbox", type="messages"),
         type="messages",
         textbox=gr.Textbox(placeholder="What content do you need today?", scale=9),
         additional_inputs=[model_selector, audience, platform, region],
-        additional_outputs=[output_text],
+        additional_outputs=[last_response],
         title="",
     )
 
-    # Toggle de ajustes
+    # Caja de texto para copiar (al final del chat)
+    output_text = gr.Textbox(
+        label="If you liked it, click to copy the answer. ✂️",
+        visible=False,
+        interactive=False,
+        lines=6,
+        show_copy_button=True
+    )
+
+    # Siempre que cambie last_response, se actualiza la caja
+    def show_response(text):
+        return gr.update(value=text, visible=True)
+
+    last_response.change(fn=show_response, inputs=last_response, outputs=output_text)
+
     def toggle_settings(current):
         return not current, gr.update(visible=not current)
 
-    toggle_btn.click(
-        fn=toggle_settings,
-        inputs=show_settings,
-        outputs=[show_settings, config_panel]
-    )
+    toggle_btn.click(toggle_settings, show_settings, [show_settings, config_panel])
 
 demo.launch()
