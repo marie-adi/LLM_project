@@ -2,8 +2,8 @@ import gradio as gr
 import requests
 
 API_ENDPOINTS = {
-    "Horus": "http://127.0.0.1:8001/generate",
-    "Isis": "http://127.0.0.1:8001/agent/finance"
+    "Horus": "http://127.0.0.1:8000/generate",
+    "Isis": "http://127.0.0.1:8000/agent/finance"
 }
 
 # Se guarda el último mensaje generado
