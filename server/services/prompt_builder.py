@@ -75,7 +75,6 @@ def get_combined_prompt(user_input, platform, age_range, region=None):
     # 1. Detect language of user input
     detected_language = detect(user_input)  # Example: 'es', 'fr', 'en'
 
-    # 2. Paths for static prompt modules
     base_prompt_path      = os.path.join(BASE_DIR, "prompts", "base.txt")
     language_prompt_path  = os.path.join(BASE_DIR, "prompts", "languages", f"{detected_language}.txt")
     platform_prompt_path  = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
@@ -85,11 +84,26 @@ def get_combined_prompt(user_input, platform, age_range, region=None):
     if not os.path.exists(language_prompt_path):
         language_prompt_path = os.path.join(BASE_DIR, "prompts", "languages", "en.txt")
 
-    # 4. Load all core prompts
+    # 3. Building the paths of the desired platform and age group
+    #    In the front there are 2 dropdown buttons for the user to select the platform and age group
+    platform_prompt_path = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
+    age_prompt_path = os.path.join(BASE_DIR, "prompts", "age_groups", f"{age_range}.txt")
+    
+    print(f"[DEBUG] Loading language template: {language_prompt_path}")
+    print(f"[DEBUG] Loading platform template: {platform_prompt_path}")
+    print(f"[DEBUG] Loading age template: {age_prompt_path}")
+
+    # 4. Loading the chosen prompts
     base_prompt     = load_text(base_prompt_path)
-    language_prompt = load_text(language_prompt_path)
-    platform_prompt = load_text(platform_prompt_path)
-    age_prompt      = load_text(age_prompt_path)
+    
+    try:
+        language_prompt = load_text(language_prompt_path)
+        platform_prompt = load_text(platform_prompt_path)
+        age_prompt = load_text(age_prompt_path)
+        print(f"[DEBUG] Templates loaded successfully!")
+    except Exception as e:
+        print(f"[DEBUG] Error loading template: {str(e)}")
+        raise ValueError(f"Error loading templates: {str(e)}")
 
     # 5. Load dialect prompt if region is provided and mapped
     normalized_dialect_code = normalize_region(region) if region else None
