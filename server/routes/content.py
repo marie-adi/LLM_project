@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from server.services.query_engine import ContentQueryEngine
 from loguru import logger
 
-router = APIRouter(prefix="/generate", tags=["Content"])
+router = APIRouter(prefix="/generate", tags=["Rapid Content Generator"])
 
 class ContentRequest(BaseModel):
     prompt: str
@@ -14,7 +14,8 @@ class ContentRequest(BaseModel):
 class ContentResponse(BaseModel):
     output: str
 
-@router.post("/", response_model=ContentResponse)
+@router.post("/basic/", tags=["Rapid Content Generator"], summary="Create economic posts for LinkedIn, Twitter, or Instagram", description="Generates educational and platform-tailored content based on topic, audience, region, and prompt.")
+
 async def generate_content(request: ContentRequest):
     try:
         logger.info(f"Received content request: {request}")

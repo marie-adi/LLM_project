@@ -15,7 +15,12 @@ class AgentRequest(BaseModel):
 class AgentResponse(BaseModel):
     output: str
 
-@router.post("/finance", response_model=AgentResponse)
+@router.post(
+    "/finance_complete",
+    response_model=AgentResponse,
+    summary="Run the finance agent (Deep + Basic Yahoo)",
+    description="Generates financial content tailored to a specific platform, audience, and region using a selected LLM model."
+)
 async def run_finance_agent(request: AgentRequest):
     try:
         logger.info(f"Finance Agent Request: {request}")

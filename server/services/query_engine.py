@@ -5,13 +5,14 @@ from server.tools.pdf_fetcher import PDFRetriever
 from loguru import logger
 
 class ContentQueryEngine:
+    
     def __init__(self, model_name: str = "llama-3.1-8b-instant"):
         self.prompt_builder = PromptBuilder()
         self.lm_engine = LMEngine(model_name)
         self.yahoo = YahooFetcher()
         self.pdf_retriever = PDFRetriever()
 
-    async def run_query(self, request) -> str:
+    async def run_query(self, request: str) -> str:
         logger.info(f"Processing user input: {request.prompt}")
 
         # Step 1: Build initial prompt
@@ -28,7 +29,7 @@ class ContentQueryEngine:
             logger.debug("Market data enrichment added.")
 
         # Step 3: Retrieve relevant PDF chunks
-        document_chunks = self.pdf_retriever.search(request.prompt)
+        document_chunks = self.pdf_retriever.retrieve(request.prompt)
         doc_text = " | ".join([doc.page_content[:500] for doc in document_chunks]) if document_chunks else ""
         if doc_text:
             logger.debug("PDF-based content enrichment added.")
