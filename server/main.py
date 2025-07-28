@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from server.routes import content, agent, yahoo
+from server.routes import content, agent, yahoo, image
 from loguru import logger
 from server.routes.query import router as query_router
 
@@ -10,6 +10,7 @@ app.include_router(content.router)
 app.include_router(agent.router)
 app.include_router(query_router)
 app.include_router(yahoo.router)
+app.include_router(image.router) 
 
 @app.get("/")
 async def root():
