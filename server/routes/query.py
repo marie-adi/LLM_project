@@ -9,11 +9,11 @@ engine = ContentQueryEngine()
 
 class QueryRequest(BaseModel):
     prompt: str = Field(..., description="Economics query")
-    platform: str
-    audience: str
-    region: str = None
+    platform: str = "linkedin"
+    audience: str = "26-85"
+    region: str = "Spanish (Argentina)"
 
-@router.post("/query/ask", tags=[" Deep Knowledge Retrieval Agent"], summary="(Knowledge Retrieval Agent) Retrieves scholarly data from arXiv and embeds it using ChromaDB.", description="Detects depth, enriches context via academic sources, and generates educational content for social platforms.")
+@router.post("/query/ask", tags=["Academic Research Agent (PDF/arXiv-focused)"], summary="(Knowledge Retrieval Agent) Retrieves scholarly data from arXiv and embeds it using ChromaDB.", description="Detects depth, enriches context via academic sources, and generates educational content for social platforms.")
 async def ask_query(request: QueryRequest):
     user_query = request.prompt
     logger.info(f"Received query: {user_query}")

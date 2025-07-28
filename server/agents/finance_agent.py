@@ -1,23 +1,206 @@
+from typing import Dict, Any, List
 from server.tools.yahoo_data import YahooFetcher
 from server.tools.pdf_fetcher import PDFRetriever
 from server.services.lm_engine import LMEngine
 from loguru import logger
+from datetime import datetime
 
 class FinanceAgent:
-    def __init__(self, model_name: str = "llama"):
+    def __init__(self, model_name: str = "llama-3.1-8b-instant"):
         self.yahoo = YahooFetcher()
         self.pdfs = PDFRetriever()
         self.lm = LMEngine(model_name)
+        self.bias_log: List[Dict] = []
+        
+        self.debiasing_prompt = """
+        You are a financial assistant. Follow these rules:
+        1. Present balanced perspectives
+        2. Disclose data limitations
+        3. Avoid stereotypes about regions/markets
+        4. Highlight opposing views when available
+        5. Use neutral language
+        """
+        
+        self.bias_keywords = {
+            "regional": ["third world", "developed", "backward"],
+            "gender": ["he should", "female CEO"],
+            "absolute": ["always", "never", "must"]
+        }
 
-    async def run(self, request):
-        ticker_data = self.yahoo.fetch(request.prompt)
-        pdf_chunks = self.pdfs.search(request.prompt)
+    async def run(self, request) -> Dict[str, Any]:
+        context = {
+            "platform": request.platform,
+            "audience": request.audience,
+            "region": self._neutralize_region(request.region),
+            "sources": [],
+            "disclosures": []
+        }
+        
+        try:
+            self._detect_input_bias(request.prompt)
+            strategy = await self._determine_strategy(request.prompt)
+            logger.info(f"Selected strategy: {strategy}")
+            
+            result = await self._execute_strategy(strategy, request.prompt, context)
+            processed_output = self._scan_output_bias(result, context)
+            
+            return {
+                "output": processed_output,
+                "sources": context["sources"],
+                "disclosures": context["disclosures"]
+            }
+            
+        except Exception as e:
+            logger.error(f"Processing failed: {str(e)}")
+            return await self._fallback_response(request.prompt, context)
 
-        enriched_prompt = f"""
-User request: {request.prompt}
-Market Info: {ticker_data}
-Supporting PDFs: {" | ".join([chunk.page_content[:300] for chunk in pdf_chunks])}
-Platform: {request.platform}, Audience: {request.audience}, Region: {request.region}
-"""
+    async def _execute_strategy(self, strategy: str, prompt: str, context: Dict) -> str:
+        strategies = {
+            "yahoo": self._yahoo_strategy,
+            "pdf": self._pdf_strategy,
+            "combined": self._combined_strategy,
+            "direct": self._direct_strategy
+        }
+        return await strategies[strategy](prompt, context)
 
-        return await self.lm.ask(enriched_prompt)
+    async def _yahoo_strategy(self, prompt: str, context: Dict) -> str:
+        data = self.yahoo.fetch(prompt)
+        context["sources"].append("Yahoo Finance")
+        
+        if not self._validate_source(data, "western"):
+            context["disclosures"].append("Market data may be Western-focused")
+            
+        return await self._debiased_query(
+            f"Market Data: {data}\nQuestion: {prompt}",
+            context
+        )
+
+    async def _pdf_strategy(self, prompt: str, context: Dict) -> str:
+        docs = self.pdfs.search(prompt)
+        context["sources"].extend([doc.metadata.get("source", "PDF") for doc in docs])
+        
+        if len(docs) < 3:
+            context["disclosures"].append("Limited document sources available")
+            
+        return await self._debiased_query(
+            f"Documents: {' | '.join(doc.page_content[:200] for doc in docs)}\nQuestion: {prompt}",
+            context
+        )
+
+    async def _combined_strategy(self, prompt: str, context: Dict) -> str:
+        yahoo_data = self.yahoo.fetch(prompt)
+        docs = self.pdfs.search(prompt)
+        
+        context["sources"].extend([
+            "Yahoo Finance",
+            *[doc.metadata.get("source", "PDF") for doc in docs]
+        ])
+        
+        disclosures = []
+        if not self._validate_source(yahoo_data, "diverse"):
+            disclosures.append("Market data may lack diversity")
+        if len(docs) < 2:
+            disclosures.append("Limited supporting documents")
+            
+        context["disclosures"].extend(disclosures)
+        
+        return await self._debiased_query(
+            f"Market Data: {yahoo_data}\nDocuments: {' | '.join(doc.page_content[:200] for doc in docs)}\nQuestion: {prompt}",
+            context
+        )
+
+    async def _direct_strategy(self, prompt: str, context: Dict) -> str:
+        context["disclosures"].append("No external data sources used")
+        return await self._debiased_query(prompt, context)
+
+    async def _debiased_query(self, prompt: str, context: Dict) -> str:
+        full_prompt = f"""
+        {self.debiasing_prompt}
+        
+        Context: {context}
+        Additional Data: {prompt}
+        
+        Required Format:
+        1. Balanced perspective
+        2. Source disclosures
+        3. Regional neutrality
+        4. Multiple viewpoints if possible
+        """
+        
+        return await self.lm.ask(full_prompt)
+
+    def _scan_output_bias(self, response: str, context: Dict) -> str:
+        for category, terms in self.bias_keywords.items():
+            for term in terms:
+                if term in response.lower():
+                    context["disclosures"].append(
+                        f"Mitigated potential {category} bias"
+                    )
+                    self._log_bias(category, term, response)
+                    response = response.replace(term, self._neutral_term(term))
+        return response
+
+    def _neutral_term(self, term: str) -> str:
+        neutral_map = {
+            "third world": "developing",
+            "developed": "higher-income",
+            "backward": "different",
+            "always": "often",
+            "never": "rarely",
+            "must": "may consider"
+        }
+        return neutral_map.get(term.lower(), term)
+
+    def _neutralize_region(self, region: str) -> str:
+        return region.replace("(Emerging)", "").replace("(Developed)", "").strip()
+
+    def _validate_source(self, data: str, check_type: str) -> bool:
+        if check_type == "western":
+            return any(market in data for market in ["Asia", "Latin America", "Africa"])
+        return True
+
+    def _detect_input_bias(self, prompt: str):
+        for category, terms in self.bias_keywords.items():
+            found = [term for term in terms if term in prompt.lower()]
+            if found:
+                self._log_bias(category, ", ".join(found), prompt)
+
+    def _log_bias(self, category: str, evidence: str, context: str):
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "category": category,
+            "evidence": evidence,
+            "context": context[:200] + "..." if len(context) > 200 else context
+        }
+        self.bias_log.append(entry)
+        logger.warning(f"Bias detected: {category} - {evidence}")
+
+    async def _fallback_response(self, prompt: str, context: Dict) -> Dict:
+        context["disclosures"].append("System encountered processing limitations")
+        return {
+            "output": "I'm unable to provide a fully vetted response at this time. Please consult multiple sources for important financial decisions.",
+            "sources": [],
+            "disclosures": context["disclosures"]
+        }
+
+    async def _determine_strategy(self, prompt: str) -> str:
+        prompt_lower = prompt.lower()
+        yahoo_triggers = {
+            'price', 'ticker', 'quote', 'market', 
+            'financial', 'stock', 'exchange'
+        }
+        pdf_triggers = {
+            'report', 'analysis', 'research',
+            'document', 'filing', 'statement', 'white paper'
+        }
+        
+        yahoo_score = sum(1 for term in yahoo_triggers if term in prompt_lower)
+        pdf_score = sum(1 for term in pdf_triggers if term in prompt_lower)
+        
+        if yahoo_score > 1 and pdf_score > 1:
+            return "combined"
+        elif yahoo_score > 0:
+            return "yahoo"
+        elif pdf_score > 0:
+            return "pdf"
+        return "direct"

@@ -1,27 +1,46 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from server.services.query_engine import ContentQueryEngine
+from server.services.prompt_builder import PromptBuilder
+from server.services.lm_engine import LMEngine
 from loguru import logger
 
-router = APIRouter(prefix="/generate", tags=["Rapid Content Generator"])
+router = APIRouter(prefix="/generate", tags=["General Knowledge Agent"])
 
 class ContentRequest(BaseModel):
     prompt: str
-    audience: str = "20-25"
+    audience: str = "08-11"
     platform: str = "twitter"
-    region: str = "Spain"
+    region: str = "Spanish (Argentina)"
 
 class ContentResponse(BaseModel):
     output: str
 
-@router.post("/basic/", tags=["Rapid Content Generator"], summary="Create economic posts for LinkedIn, Twitter, or Instagram", description="Generates educational and platform-tailored content based on topic, audience, region, and prompt.")
+# Inicializa el builder y el engine de manera global para reutilizar conexiones
+prompt_builder = PromptBuilder()
+lm_engine = LMEngine(model_name="llama-3.1-8b-instant")
 
+@router.post(
+    "/basic/",
+    summary="Create economic posts for LinkedIn, Twitter, or Instagram",
+    description="Generates educational and platform-tailored content based on topic, audience, region, and prompt."
+)
 async def generate_content(request: ContentRequest):
     try:
         logger.info(f"Received content request: {request}")
-        engine = ContentQueryEngine()
-        result = await engine.run_query(request)
-        return ContentResponse(output=result)
+
+        # 1) Usar build_prompt en lugar de build
+        enriched_prompt = prompt_builder.build_prompt(
+            user_input=request.prompt,
+            platform=request.platform,
+            age_range=request.audience,
+            region=request.region
+        )
+
+        # 2) Llamada al modelo Llama Instant (Groq API)
+        output = await lm_engine.ask(enriched_prompt)
+
+        return ContentResponse(output=output)
+
     except Exception as e:
-        logger.error(f"Error generating content: {e}")
+        logger.error(f"Error generating content: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Generation failed")

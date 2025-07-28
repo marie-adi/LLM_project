@@ -1,21 +1,34 @@
+import os
+from typing import List
+from loguru import logger
+
 from server.services.prompt_builder import PromptBuilder
 from server.services.lm_engine import LMEngine
 from server.tools.yahoo_data import YahooFetcher
 from server.tools.pdf_fetcher import PDFRetriever
-from loguru import logger
+
+# Tu pipeline Chroma
+from server.database.chroma_db import (
+    create_or_update_vector_db,
+    query_chroma_db
+)
+
 
 class ContentQueryEngine:
-    
     def __init__(self, model_name: str = "llama-3.1-8b-instant"):
         self.prompt_builder = PromptBuilder()
         self.lm_engine = LMEngine(model_name)
         self.yahoo = YahooFetcher()
-        self.pdf_retriever = PDFRetriever()
+        self.pdf_retriever = PDFRetriever(
+            save_dir="server/database/data_pdfs",
+            max_results=5,
+            categories=None
+        )
 
-    async def run_query(self, request: str) -> str:
+    async def run_query(self, request) -> str:
         logger.info(f"Processing user input: {request.prompt}")
 
-        # Step 1: Build initial prompt
+        # 1) Prompt base
         base_prompt = self.prompt_builder.build_prompt(
             user_input=request.prompt,
             platform=request.platform,
@@ -23,18 +36,33 @@ class ContentQueryEngine:
             region=request.region
         )
 
-        # Step 2: Retrieve market data (if ticker detected)
+        # 2) Market enrichment
         market_info = self.yahoo.fetch(request.prompt)
         if market_info:
             logger.debug("Market data enrichment added.")
 
-        # Step 3: Retrieve relevant PDF chunks
-        document_chunks = self.pdf_retriever.retrieve(request.prompt)
-        doc_text = " | ".join([doc.page_content[:500] for doc in document_chunks]) if document_chunks else ""
-        if doc_text:
+        # 3) Download PDFs → obtenemos rutas
+        pdf_paths: List[str] = self.pdf_retriever.retrieve(request.prompt)
+        doc_text = ""
+
+        if pdf_paths:
+            # 4) Indexar en ChromaDB
+            create_or_update_vector_db(self.pdf_retriever.save_dir)
+
+            # 5) Recuperar chunks relevantes
+            chunks = query_chroma_db(request.prompt, k=5)
+            doc_text = " | ".join([c.page_content[:500] for c in chunks])
             logger.debug("PDF-based content enrichment added.")
 
-        # Step 4: Finalize prompt with enrichments
+            # 6) Borrar ficheros temporales
+            for path in pdf_paths:
+                try:
+                    os.remove(path)
+                except Exception as e:
+                    logger.error(f"Error deleting temporary PDF {path}: {e}")
+            logger.debug("Temporary PDF files cleaned up.")
+
+        # 7) Montar prompt final
         enriched_prompt = f"""
 {base_prompt}
 

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query
 import yfinance as yf
 
-router = APIRouter()
+router = APIRouter(prefix="/yahoo", tags=["Market Data Agent (Yahoo finance-focused)"])
 
 @router.post("/agent/yahoo")
 def get_ticker_data(
-    symbol: str = Query(..., summary=  "Ticker Insight Service", description="Stock or crypto ticker symbol (e.g. 'AAPL', 'BTC-USD')")
+    symbol: str = Query(..., summary= "This goes to the yahoo finance library to obtain tickers information", description="Stock or crypto ticker symbol (e.g. 'AAPL', 'BTC-USD')")
 ):
     try:
         ticker = yf.Ticker(symbol)

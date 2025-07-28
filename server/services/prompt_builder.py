@@ -58,33 +58,72 @@ class PromptBuilder:
             return ""
 
     def build_prompt(self, user_input: str, platform: str, age_range: str, region: str = None) -> str:
-        language = detect(user_input)
-        logger.info(f"Detected input language: {language}")
+        # Step 1: Detect language with enhanced reliability
+        try:
+            language = detect(user_input)
+            # Validate against supported languages
+            supported_languages = ["en", "es", "fr"]  # Add others as needed
+            if language not in supported_languages:
+                language = "en"  # Default to English for unsupported languages
+        except Exception as e:
+            logger.error(f"Language detection failed: {e}")
+            language = "en"
+        
+        logger.info(f"Detected language: {language}")
 
+        # Step 2: Normalize region but only use it if compatible with detected language
+        normalized_region = self.normalize_region(region) if region else None
+        region_language = normalized_region.split('_')[0] if normalized_region and '_' in normalized_region else None
+        
+        # Step 3: Determine if we should use regional adaptation
+        use_regional_adaptation = (
+            region_language and 
+            region_language == language and
+            language in ["en", "es", "fr"]  # Only for languages we have regional variants for
+        )
+        
+        # Step 4: Build paths
         paths = {
             "base": os.path.join(PROMPT_DIR, "base.txt"),
             "language": os.path.join(PROMPT_DIR, "languages", f"{language}.txt"),
             "platform": os.path.join(PROMPT_DIR, "platforms", f"{platform}.txt"),
             "age": os.path.join(PROMPT_DIR, "age_groups", f"{age_range}.txt"),
-            "dialect": os.path.join(PROMPT_DIR, "dialects", f"{self.normalize_region(region)}.txt")
+            "dialect": os.path.join(PROMPT_DIR, "dialects", 
+                                f"{normalized_region}.txt" if use_regional_adaptation else "default.txt")
         }
 
+        # Ensure language file exists
         if not os.path.exists(paths["language"]):
+            logger.warning(f"Language file not found for {language}, falling back to English")
             paths["language"] = os.path.join(PROMPT_DIR, "languages", "en.txt")
 
-        logger.debug(f"Prompt templates: {paths}")
+        # Load components
+        components = {key: self._load_file(path) for key, path in paths.items()}
 
-        # Load individual prompt components
-        base = self._load_file(paths["base"])
-        language_block = self._load_file(paths["language"])
-        dialect = self._load_file(paths["dialect"])
-        platform_block = self._load_file(paths["platform"])
-        age_block = self._load_file(paths["age"])
-
-        # Compose response instruction
-        if language in ["es", "en", "fr"] and region:
-            response_instruction = f"\n\nRespond in {language} adapted to the linguistic style of {region}."
+        # Step 5: Build response instruction
+        if use_regional_adaptation:
+            response_instruction = (
+                f"\n\nRespond in {language}, adapting your response to the linguistic style of {region}. "
+                f"Maintain all regional expressions and vocabulary appropriate for {region}."
+            )
         else:
-            response_instruction = f"\n\nRespond in {language}. Adapt tone and cultural references accordingly."
+            response_instruction = (
+                f"\n\nRespond in {language}. "
+                f"Do not use regional adaptations as the input language doesn't match the selected region."
+            )
+        
+        # Special case for unsupported languages
+        if language not in supported_languages:
+            response_instruction += (
+                "\n\nNote: The user's language isn't fully supported. "
+                "Keep the response simple and easy to understand."
+            )
 
-        return f"{base}\n\n{language_block}\n\n{dialect}\n\n{platform_block}\n\n{age_block}{response_instruction}"
+        return (
+            f"{components['base']}\n\n"
+            f"{components['language']}\n\n"
+            f"{components['dialect']}\n\n"
+            f"{components['platform']}\n\n"
+            f"{components['age']}\n\n"
+            f"{response_instruction}"
+        )
