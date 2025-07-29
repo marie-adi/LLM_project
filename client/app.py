@@ -35,23 +35,82 @@ def chat_wrapper(message, history, model, audience, platform, region, llm_model_
 
 
 with gr.Blocks(css="""
+body {
+    background-color: #1e40af;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.gr-block.gr-box {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
 #header {
     text-align: center;
     color: #1e40af;
     font-size: 2rem;
     font-weight: bold;
-    margin: 1rem;
-}
-#chatbox .message.user {
-    background-color: #e0f2fe;
-    color: #1e40af;
-}
-#chatbox .message.bot {
-    background-color: #F2F2F2;
-    color: #1e40af;
+    margin-bottom: 2rem;
 }
 
+input, textarea, select {
+    background-color: #F2F2F2 !important;
+    color: #1e40af !important;
+    border: 1px solid #3b82f6 !important;
+    border-radius: 6px !important;
+    padding: 10px !important;
+    font-size: 1rem;
+}
+
+button:not(.copy-btn):not(.copy-button) {
+    background-color: #10b981 !important;
+    color: white !important;
+    font-weight: bold !important;
+    border-radius: 6px !important;
+    padding: 10px 20px !important;
+    border: none !important;
+}
+button:hover:not(.copy-btn):not(.copy-button) {
+    background-color: #0f766e !important;
+}
+
+.gr-markdown h2, .gr-markdown h3, label {
+    color: #1e40af !important;
+    font-weight: bold;
+}
+.gr-textbox label, .gr-dropdown label {
+    color: #1e40af !important;
+}
+
+textarea[readonly], .gr-textbox[readonly] {
+    background-color: white !important;
+    color: #1e40af !important;
+    border: 1px solid #3b82f6 !important;
+}
+
+#chatbox .message.user {
+    background-color: #F2F2F2;
+    color: #1e40af;
+    font-weight: 500;
+}
+#chatbox .message.bot {
+    background-color: white;
+    color: #666666;
+    font-weight: 400;
+}
+
+img {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    max-width: 100%;
+    margin-top: 1rem;
+}
 """) as demo:
+
 
     # Título
     gr.Markdown("<div id='header'> FinancIA — Financial Content Assistant</div>")
