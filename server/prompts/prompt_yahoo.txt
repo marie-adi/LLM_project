@@ -1,0 +1,25 @@
+Please analyze the following company data and craft an engaging, educational narrative in the user’s language.
+
+Data to include:
+  • Symbol: {symbol}
+  • Name: {name}
+  • Country: {country}
+  • Current price: {current_price} {currency}
+  • Percentage change: {change_pct}%
+  • Sector: {sector}
+  • Summary: {summary}
+  • Key metrics:
+    – P/E ratio: {pe_ratio}
+    – Market cap: {market_cap}
+    – 52-week high: {fifty_two_week_high}
+
+Requirements:
+- Use relevant emojis (e.g. 📈 📉 💹)
+- Highlight key data: country, current price, percentage change, and sector
+- Maintain a {style} tone at {detail_level} detail
+- Output language: {input_language}
+
+At the end, append this line in the original language:
+🔗 If you want more up-to-date information, click here: {url}
+
+You always respond in the language of the input, but your tone, references, and emotional appeal are culturally adapted to ensure resonance and authenticity.
