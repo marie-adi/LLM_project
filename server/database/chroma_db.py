@@ -5,6 +5,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
+from loguru import logger
 
 # Absolute path to current directory (where this script lives)
 BASE_DIR = os.path.dirname(__file__)
@@ -43,7 +44,7 @@ def load_documents(pdf_directory: str) -> List[Document]:
             loader = PyPDFLoader(filepath)
             docs = loader.load()
             all_documents.extend(docs)
-    print(f"Total PDF pages loaded: {len(all_documents)}.")
+    logger.info(f"Total PDF pages loaded: {len(all_documents)}.")
     return all_documents
 
 
@@ -52,21 +53,18 @@ def split_documents_into_chunks(documents: List[Document]) -> List[Document]:
     Splits full documents into smaller chunks to optimize embedding.
     """
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=3000,
+        chunk_overlap=100,
         length_function=len,
         is_separator_regex=False,
     )
-    print(f"Splitting {len(documents)} documents into chunks...")
+    logger.info(f"Splitting {len(documents)} documents into chunks...")
     chunks = splitter.split_documents(documents)
-    print(f"Total chunks created: {len(chunks)}.")
+    logger.success(f"Total chunks created: {len(chunks)}.")
     return chunks
 
 
 def add_documents_to_chroma(chunks: List[Document], embedding_function):
-    """
-    Adds new chunks to ChromaDB one by one, printing progress and catching errors.
-    """
     db = Chroma(
         persist_directory=CHROMA_PERSIST_DIRECTORY,
         embedding_function=embedding_function,
@@ -77,23 +75,23 @@ def add_documents_to_chroma(chunks: List[Document], embedding_function):
     existing_sources = {meta.get("source") for meta in existing["metadatas"]}
     new_chunks = [doc for doc in chunks if doc.metadata.get("source") not in existing_sources]
 
-    print(f"Detected {len(existing_sources)} existing document sources.")
-    print(f"Preparing to insert {len(new_chunks)} chunks that aren’t duplicates.")
+    logger.info(f"Detected {len(existing_sources)} existing sources.")
+    logger.info(f"Preparing to insert {len(new_chunks)} new chunks.")
 
     if not new_chunks:
-        print("No new documents inserted (all were duplicates).")
+        loger.warning("No new documents to insert.")
         return
 
-    for i, chunk in enumerate(new_chunks):
-        try:
-            print(f"Inserting chunk {i + 1}/{len(new_chunks)}")
-            db.add_documents([chunk])
-        except Exception as e:
-            print(f"⚠️ Error inserting chunk {i + 1}: {e}")
-            print(f"🧪 Chunk preview: {chunk.page_content[:300]}...")
+    batch_size = 64
+    total = len(new_chunks)
+    for i in range(0, total, batch_size):
+        batch = new_chunks[i : i + batch_size]
+        start, end = i + 1, i + len(batch)
+        logger.info(f"Inserting chunks {start}–{end} of {total}...")
+        db.add_documents(batch)
 
     db.persist()
-    print("✅ All chunks processed. ChromaDB updated.")
+    logger.success("✅ ChromaDB updated with all batches.")
 
 def create_or_update_vector_db(pdf_directory: str):
     """
@@ -103,7 +101,7 @@ def create_or_update_vector_db(pdf_directory: str):
     documents = load_documents(pdf_directory)
 
     if not documents:
-        print("No PDFs found. Place some files in the folder before running.")
+        logger.error("No PDFs found. Place some files in the folder before running.")
         return
 
     chunks = split_documents_into_chunks(documents)
@@ -123,12 +121,12 @@ def query_chroma_db(query_text: str, k: int = 5) -> List[Document]:
             collection_name=COLLECTION_NAME
         )
     except Exception as e:
-        print(f"Failed to connect to ChromaDB: {e}")
+        logger.error(f"Failed to connect to ChromaDB: {e}")
         return []
 
-    print(f"Searching ChromaDB for: '{query_text}'")
+    logger.info(f"Searching ChromaDB for: '{query_text}'")
     results = db.similarity_search(query_text, k=k)
-    print(f"Found {len(results)} relevant chunks.")
+    logger.info(f"Found {len(results)} relevant chunks.")
     return results
 
 
