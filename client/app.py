@@ -5,8 +5,8 @@ import io
 import base64
 
 API_ENDPOINTS = {
-    "Horus": "http://127.0.0.1:8000/generate",
-    "Isis": "http://127.0.0.1:8000/agent/finance"
+    "Horus": "http://127.0.0.1:8002/content.router",
+    "Isis": "http://127.0.0.1:8002/agent/finance"
 }
 
 # Se guarda el último mensaje generado
@@ -159,7 +159,7 @@ with gr.Blocks(css="""
     def generate_image_ui(prompt):
         print(f"[DEBUG] Prompt received: {prompt}")
         try:
-            response = requests.post("http://127.0.0.1:8000/generate-image", json={"prompt": prompt})
+            response = requests.post("http://127.0.0.1:8002/generate-image", json={"prompt": prompt})
             response.raise_for_status()
 
             image_base64 = response.json()["output"]
