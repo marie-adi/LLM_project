@@ -35,20 +35,23 @@ def chat_wrapper(message, history, model, audience, platform, region, llm_model_
 
 
 with gr.Blocks(css="""
-body {
-    background-color: #1e40af;
+:root, html, body, .gradio-container {
+    background-color: #e6f0fa !important;
+    color-scheme: light !important;
     font-family: 'Segoe UI', sans-serif;
+    color: #1e40af !important;
 }
 
+/* Estructura general */
 .gr-block.gr-box {
-    background-color: white;
-    border-radius: 12px;
-    padding: 2rem;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     margin: 2rem auto;
-    max-width: 800px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    max-width: 900px;
 }
 
+/* Título */
 #header {
     text-align: center;
     color: #1e40af;
@@ -57,8 +60,9 @@ body {
     margin-bottom: 2rem;
 }
 
+/* Campos de entrada */
 input, textarea, select {
-    background-color: #F2F2F2 !important;
+    background-color: #ffffff !important;
     color: #1e40af !important;
     border: 1px solid #3b82f6 !important;
     border-radius: 6px !important;
@@ -66,6 +70,7 @@ input, textarea, select {
     font-size: 1rem;
 }
 
+/* Botones */
 button:not(.copy-btn):not(.copy-button) {
     background-color: #10b981 !important;
     color: white !important;
@@ -78,6 +83,7 @@ button:hover:not(.copy-btn):not(.copy-button) {
     background-color: #0f766e !important;
 }
 
+/* Títulos, labels */
 .gr-markdown h2, .gr-markdown h3, label {
     color: #1e40af !important;
     font-weight: bold;
@@ -86,34 +92,40 @@ button:hover:not(.copy-btn):not(.copy-button) {
     color: #1e40af !important;
 }
 
-textarea[readonly], .gr-textbox[readonly] {
-    background-color: white !important;
-    color: #1e40af !important;
-    border: 1px solid #3b82f6 !important;
-}
-
+/* Chat principal */
 .gr-chatbot {
-    max-height: 800px !important;
-    min-height: 600px !important;
+    background-color: #ffffff !important;
+    color: #1e40af !important;
+    max-height: 600px !important;
+    min-height: 400px !important;
     overflow-y: auto !important;
     font-size: 1.05rem !important;
-    background-color: #edf1f5 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
     border: 1px solid #ccc !important;
 }
 
+/* Mensajes */
 #chatbox .message.user {
     background-color: #629bf7 !important;
     color: white !important;
     font-weight: 500;
 }
-
 #chatbox .message.bot {
     background-color: #bdc0c4 !important;
-    color: white !important;
+    color: #1e40af !important;
     font-weight: 400;
 }
 
+/* Resultado de texto (copia) */
+textarea[readonly], .gr-textbox[readonly] {
+    background-color: white !important;
+    color: #1e40af !important;
+    border: 1px solid #3b82f6 !important;
+    border-radius: 6px !important;
+}
 
+/* Imágenes */
 img {
     border-radius: 8px;
     border: 1px solid #ccc;
@@ -121,6 +133,7 @@ img {
     margin-top: 1rem;
 }
 """) as demo:
+
 
 
     # Título
