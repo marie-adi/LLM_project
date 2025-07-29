@@ -92,16 +92,27 @@ textarea[readonly], .gr-textbox[readonly] {
     border: 1px solid #3b82f6 !important;
 }
 
+.gr-chatbot {
+    max-height: 800px !important;
+    min-height: 600px !important;
+    overflow-y: auto !important;
+    font-size: 1.05rem !important;
+    background-color: #edf1f5 !important;
+    border: 1px solid #ccc !important;
+}
+
 #chatbox .message.user {
-    background-color: #F2F2F2;
-    color: #1e40af;
+    background-color: #629bf7 !important;
+    color: white !important;
     font-weight: 500;
 }
+
 #chatbox .message.bot {
-    background-color: white;
-    color: #666666;
+    background-color: #bdc0c4 !important;
+    color: white !important;
     font-weight: 400;
 }
+
 
 img {
     border-radius: 8px;
