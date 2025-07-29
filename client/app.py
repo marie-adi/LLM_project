@@ -11,8 +11,7 @@ API_ENDPOINTS = {
 }
 
 # Se guarda el último mensaje generado
-def chat_wrapper(message, history, model, audience, platform, region):
-    # Payload común a todos
+def chat_wrapper(message, history, model, audience, platform, region, llm_model_choice):
     payload = {
         "prompt": message,
         "audience": audience,
@@ -20,21 +19,20 @@ def chat_wrapper(message, history, model, audience, platform, region):
         "region": region
     }
 
-    # Solo el endpoint "Isis" necesita el campo "model"
+    # Solo Isis necesita el modelo LLM
     if model == "Isis - Advanced reasoning":
-        payload["model"] = "llama-3.1-8b-instant"  # o el que quieras usar por defecto
+        payload["model"] = llm_model_choice
 
     try:
         response = requests.post(API_ENDPOINTS[model], json=payload)
         response.raise_for_status()
-
-        # "Thoth" usa "response", los otros "output"
         json_response = response.json()
         output = json_response.get("output", json_response.get("response", "No response received."))
     except Exception as e:
         output = f"❌ Error: {str(e)}"
 
-    return [{"role": "assistant", "content": output}], output 
+    return [{"role": "assistant", "content": output}], output
+
 
 with gr.Blocks(css="""
 #header {
@@ -66,7 +64,7 @@ with gr.Blocks(css="""
              "Thoth - Academic RAG"
         ],
         value="Horus - Faster post generation",
-        label="Model"
+        label="Choose your agent"
     )
 
 
@@ -131,7 +129,13 @@ with gr.Blocks(css="""
              ],
         value="Spanish (Mexico)"
         )
-
+        
+        llm_model = gr.Dropdown(
+            label="LLM model (Isis only)",
+            choices=["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "gemma2-9b-it"],
+            value="llama-3.1-8b-instant"
+            ) 
+            
    # Estado para guardar respuesta
     last_response = gr.State()
 
@@ -141,7 +145,7 @@ with gr.Blocks(css="""
         chatbot=gr.Chatbot(elem_id="chatbox", type="messages"),
         type="messages",
         textbox=gr.Textbox(placeholder="What content do you need today?", scale=9),
-        additional_inputs=[model_selector, audience, platform, region],
+        additional_inputs=[model_selector, audience, platform, region, llm_model],
         additional_outputs=[last_response],
         title="",
     )
