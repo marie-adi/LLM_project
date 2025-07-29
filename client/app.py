@@ -48,7 +48,14 @@ def chat_wrapper(message, history, model, audience, platform, region, llm_model_
     return [{"role": "assistant", "content": output}], output
 
 # Interfaz Gradio
-with gr.Blocks(css="""
+with gr.Blocks(
+    theme=gr.themes.Base(
+        primary_hue="blue",
+        neutral_hue="slate",
+        radius_size="md",
+        font="sans"
+    ),
+    css="""
 :root, html, body, .gradio-container {
     background-color: #e6f0fa !important;
     color-scheme: light !important;
@@ -120,12 +127,12 @@ button:hover:not(.copy-btn):not(.copy-button) {
 }
 
 /* Mensajes */
-#chatbox .message.user {
+.gr-chatbot .message.user {
     background-color: #629bf7 !important;
     color: white !important;
     font-weight: 500;
 }
-#chatbox .message.bot {
+.gr-chatbot .message.assistant {
     background-color: #bdc0c4 !important;
     color: #1e40af !important;
     font-weight: 400;
@@ -146,7 +153,8 @@ img {
     max-width: 100%;
     margin-top: 1rem;
 }
-""") as demo:
+"""
+) as demo:
     # Logo de FinancIA
     gr.HTML("""
         <div style="display: flex; justify-content: center; padding: 1rem 0;">
