@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from server.services.prompt_builder import PromptBuilder
-from server.services.lm_engine import LMEngine
+from server.services.lm_engine import LMEngine, GroqModel
 from loguru import logger
 
 router = APIRouter(prefix="/generate", tags=["General Knowledge Agent"])
@@ -17,7 +17,7 @@ class ContentResponse(BaseModel):
 
 # Inicializa el builder y el engine de manera global para reutilizar conexiones
 prompt_builder = PromptBuilder()
-lm_engine = LMEngine(model_name="llama-3.1-8b-instant")
+lm_engine = LMEngine(model_name= GroqModel.LLAMA3_8B)
 
 @router.post(
     "/basic/",

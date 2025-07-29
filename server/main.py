@@ -5,10 +5,10 @@ from server.routes.query import router as query_router
 
 app = FastAPI(title="LLM API", version="1.0.0")
 
-# Include routers
+# These are all in server/routes folder
 app.include_router(content.router)
 app.include_router(agent.router)
-app.include_router(query_router)
+app.include_router(query_router) # This is the RAG so it goes to arxiv search and retrieve info for chorma db
 app.include_router(yahoo.router)
 app.include_router(image.router) 
 

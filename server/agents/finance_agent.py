@@ -7,9 +7,17 @@ from datetime import datetime
 
 class FinanceAgent:
     def __init__(self, model_name: str = "llama-3.1-8b-instant"):
+        """
+        Initialize financial analysis agent with specified LLM model.
+        Available models:
+        - llama-3.1-8b-instant (default)
+        - llama-3.3-70b-versatile
+        - gemma2-9b-it
+        """
         self.yahoo = YahooFetcher()
         self.pdfs = PDFRetriever()
         self.lm = LMEngine(model_name)
+        self.current_model = model_name  # Track active model
         self.bias_log: List[Dict] = []
         
         self.debiasing_prompt = """
@@ -28,6 +36,14 @@ class FinanceAgent:
         }
 
     async def run(self, request) -> Dict[str, Any]:
+        """
+        Process financial query using selected model and strategy.
+        Returns dict with:
+        - output: Generated response
+        - sources: List of data sources used
+        - disclosures: Any bias disclosures
+        - model_used: Which model generated the response
+        """
         context = {
             "platform": request.platform,
             "audience": request.audience,
@@ -37,17 +53,24 @@ class FinanceAgent:
         }
         
         try:
+            # 1. Input validation
             self._detect_input_bias(request.prompt)
-            strategy = await self._determine_strategy(request.prompt)
-            logger.info(f"Selected strategy: {strategy}")
             
+            # 2. Determine processing strategy
+            strategy = await self._determine_strategy(request.prompt)
+            logger.info(f"Model: {self.current_model} | Strategy: {strategy}")
+            
+            # 3. Execute strategy
             result = await self._execute_strategy(strategy, request.prompt, context)
+            
+            # 4. Apply bias mitigation
             processed_output = self._scan_output_bias(result, context)
             
             return {
                 "output": processed_output,
                 "sources": context["sources"],
-                "disclosures": context["disclosures"]
+                "disclosures": context["disclosures"],
+                "model_used": self.current_model
             }
             
         except Exception as e:
@@ -55,6 +78,7 @@ class FinanceAgent:
             return await self._fallback_response(request.prompt, context)
 
     async def _execute_strategy(self, strategy: str, prompt: str, context: Dict) -> str:
+        """Execute the selected processing strategy"""
         strategies = {
             "yahoo": self._yahoo_strategy,
             "pdf": self._pdf_strategy,
@@ -64,6 +88,7 @@ class FinanceAgent:
         return await strategies[strategy](prompt, context)
 
     async def _yahoo_strategy(self, prompt: str, context: Dict) -> str:
+        """Process using only market data"""
         data = self.yahoo.fetch(prompt)
         context["sources"].append("Yahoo Finance")
         
@@ -76,6 +101,7 @@ class FinanceAgent:
         )
 
     async def _pdf_strategy(self, prompt: str, context: Dict) -> str:
+        """Process using only document retrieval"""
         docs = self.pdfs.search(prompt)
         context["sources"].extend([doc.metadata.get("source", "PDF") for doc in docs])
         
@@ -88,6 +114,7 @@ class FinanceAgent:
         )
 
     async def _combined_strategy(self, prompt: str, context: Dict) -> str:
+        """Process using both market data and documents"""
         yahoo_data = self.yahoo.fetch(prompt)
         docs = self.pdfs.search(prompt)
         
@@ -110,10 +137,12 @@ class FinanceAgent:
         )
 
     async def _direct_strategy(self, prompt: str, context: Dict) -> str:
+        """Process using only the LLM"""
         context["disclosures"].append("No external data sources used")
         return await self._debiased_query(prompt, context)
 
     async def _debiased_query(self, prompt: str, context: Dict) -> str:
+        """Generate response with bias mitigation"""
         full_prompt = f"""
         {self.debiasing_prompt}
         
@@ -126,10 +155,10 @@ class FinanceAgent:
         3. Regional neutrality
         4. Multiple viewpoints if possible
         """
-        
         return await self.lm.ask(full_prompt)
 
     def _scan_output_bias(self, response: str, context: Dict) -> str:
+        """Detect and mitigate biases in generated text"""
         for category, terms in self.bias_keywords.items():
             for term in terms:
                 if term in response.lower():
@@ -141,6 +170,7 @@ class FinanceAgent:
         return response
 
     def _neutral_term(self, term: str) -> str:
+        """Replace biased terms with neutral alternatives"""
         neutral_map = {
             "third world": "developing",
             "developed": "higher-income",
@@ -152,20 +182,24 @@ class FinanceAgent:
         return neutral_map.get(term.lower(), term)
 
     def _neutralize_region(self, region: str) -> str:
+        """Remove potentially biased regional descriptors"""
         return region.replace("(Emerging)", "").replace("(Developed)", "").strip()
 
     def _validate_source(self, data: str, check_type: str) -> bool:
+        """Validate data source diversity"""
         if check_type == "western":
             return any(market in data for market in ["Asia", "Latin America", "Africa"])
         return True
 
     def _detect_input_bias(self, prompt: str):
+        """Detect biased language in user input"""
         for category, terms in self.bias_keywords.items():
             found = [term for term in terms if term in prompt.lower()]
             if found:
                 self._log_bias(category, ", ".join(found), prompt)
 
     def _log_bias(self, category: str, evidence: str, context: str):
+        """Record bias incidents"""
         entry = {
             "timestamp": datetime.now().isoformat(),
             "category": category,
@@ -176,14 +210,17 @@ class FinanceAgent:
         logger.warning(f"Bias detected: {category} - {evidence}")
 
     async def _fallback_response(self, prompt: str, context: Dict) -> Dict:
+        """Generate fallback response when processing fails"""
         context["disclosures"].append("System encountered processing limitations")
         return {
             "output": "I'm unable to provide a fully vetted response at this time. Please consult multiple sources for important financial decisions.",
             "sources": [],
-            "disclosures": context["disclosures"]
+            "disclosures": context["disclosures"],
+            "model_used": self.current_model
         }
 
     async def _determine_strategy(self, prompt: str) -> str:
+        """Auto-select processing strategy based on prompt content"""
         prompt_lower = prompt.lower()
         yahoo_triggers = {
             'price', 'ticker', 'quote', 'market', 
