@@ -1,135 +1,129 @@
-import os                       # To import paths from the prompt folder
-from langdetect import detect   # Needed for language detection so the output can be in the same language as the input
+import os
+from langdetect import detect
+from loguru import logger
 
-# This goes from here to "server" (one folder above where it can look for the "prompt" folder)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+PROMPT_DIR = os.path.join(BASE_DIR, "prompts")
 
-def load_text(path):
-    """Reads and returns the content of a text file."""
-    with open(path, 'r', encoding='utf-8') as f:
-        return f.read()
+class PromptBuilder:
+    def __init__(self):
+        self.region_map = self._load_region_map()
 
-def normalize_region(region_label):
-    """
-    Converts region dropdown label into standardized dialect code.
-    Example:
-        "Spanish (Mexico)" -> "es_mx"
-        "English (United Kingdom)" -> "en_uk"
-    """
-    region_map = {
-        # English dialects
-        "English (Australia)":      "en_au",
-        "English (Canada)":         "en_ca",
-        "English (Ireland)":        "en_ie",
-        "English (India)":          "en_in",
-        "English (Kenya)":          "en_ke",
-        "English (Nigeria)":        "en_ng",
-        "English (New Zeland)":     "en_nz",
-        "English (Pakistani)":      "en_pk",
-        "English (United Kingdom)": "en_uk",
-        "English (United States)":  "en_us",
-        "English (South Africa)":   "en_za",
+    def _load_region_map(self):
+        return {
+            "English (Australia)":      "en_au",
+            "English (Canada)":         "en_ca",
+            "English (Ireland)":        "en_ie",
+            "English (India)":          "en_in",
+            "English (Kenya)":          "en_ke",
+            "English (Nigeria)":        "en_ng",
+            "English (New Zeland)":     "en_nz",
+            "English (Pakistani)":      "en_pk",
+            "English (United Kingdom)": "en_uk",
+            "English (United States)":  "en_us",
+            "English (South Africa)":   "en_za",
+            "Spanish (Argentina)":      "es_ar",
+            "Spanish (Bolivia)":        "es_bo",
+            "Spanish (Chile)":          "es_cl",
+            "Spanish (Colombia)":       "es_co",
+            "Spanish (Cuba)":           "es_cu",
+            "Spanish (Ecuador)":        "es_ec",
+            "Spanish (Spain)":          "es_es",
+            "Spanish (Mexico)":         "es_mx",
+            "Spanish (Peru)":           "es_pe",
+            "Spanish (Uruguay)":        "es_uy",
+            "Spanish (Veneuela)":       "es_ve",
+            "French (Belgium)":         "fr_be",
+            "French (Canada)":          "fr_ca",
+            "French (Switzerland)":     "fr_ch",
+            "French (Ivory Coast)":     "fr_ci",
+            "French (Cameroon)":        "fr_cm",
+            "French (Algeria)":         "fr_dz",
+            "French (France)":          "fr_fr",
+            "French (Morocco)":         "fr_ma",
+            "French (Senegal)":         "fr_sn",
+            "French (Tunisia)":         "fr_tn",
+            "Other": "default"
+        }
 
-        # Spanish dialects
-        "Spanish (Argentina)":      "es_ar",
-        "Spanish (Bolivia)":        "es_bo",
-        "Spanish (Chile)":      "es_cl",
-        "Spanish (Colombia)":   "es_co",
-        "Spanish (Cuba)":       "es_cu",
-        "Spanish (Ecuador)":    "es_ec",
-        "Spanish (Spain)":      "es_es",
-        "Spanish (Mexico)":     "es_mx",
-        "Spanish (Peru)":       "es_pe",
-        "Spanish (Uruguay)":    "es_uy",
-        "Spanish (Veneuela)":   "es_ve",
+    def normalize_region(self, region_label: str) -> str:
+        return self.region_map.get(region_label, "default")
 
-        # French dialects
-        "French (Belgium)":     "fr_be",
-        "French (Canada)":      "fr_ca",
-        "French (Switzerland)": "fr_ch",
-        "French (Ivory Coast)": "fr_ci",
-        "French (Cameroon)":    "fr_cm",
-        "French (Algeria)":     "fr_dz",
-        "French (France)":      "fr_fr",
-        "French (Morocco)":     "fr_ma",
-        "French (Senegal)":     "fr_sn",
-        "French (Tunisia)":     "fr_tn",
+    def _load_file(self, path: str) -> str:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            logger.warning(f"Failed to load prompt file: {path} | {e}")
+            return ""
 
-        # Fallback dialect
-        "Other": "default"
-    }
+    def build_prompt(self, user_input: str, platform: str, age_range: str, region: str = None) -> str:
+        # Step 1: Detect language with enhanced reliability
+        try:
+            language = detect(user_input)
+            # Validate against supported languages
+            supported_languages = ["en", "es", "fr"]  # Add others as needed
+            if language not in supported_languages:
+                language = "en"  # Default to English for unsupported languages
+        except Exception as e:
+            logger.error(f"Language detection failed: {e}")
+            language = "en"
+        
+        logger.info(f"Detected language: {language}")
 
-    return region_map.get(region_label, None)  # Returns None if not found
+        # Step 2: Normalize region but only use it if compatible with detected language
+        normalized_region = self.normalize_region(region) if region else None
+        region_language = normalized_region.split('_')[0] if normalized_region and '_' in normalized_region else None
+        
+        # Step 3: Determine if we should use regional adaptation
+        use_regional_adaptation = (
+            region_language and 
+            region_language == language and
+            language in ["en", "es", "fr"]  # Only for languages we have regional variants for
+        )
+        
+        # Step 4: Build paths
+        paths = {
+            "base": os.path.join(PROMPT_DIR, "base.txt"),
+            "language": os.path.join(PROMPT_DIR, "languages", f"{language}.txt"),
+            "platform": os.path.join(PROMPT_DIR, "platforms", f"{platform}.txt"),
+            "age": os.path.join(PROMPT_DIR, "age_groups", f"{age_range}.txt"),
+            "dialect": os.path.join(PROMPT_DIR, "dialects", 
+                                f"{normalized_region}.txt" if use_regional_adaptation else "default.txt")
+        }
 
-def get_combined_prompt(user_input, platform, age_range, region=None):
-    """
-    Builds a full prompt by combining:
-    - base.txt: defines the system's personality and strategic depth
-    - language.txt: adapts tone, idioms, and cultural references
-    - dialect.txt: if available, adds regional flavor
-    - platform.txt: adapts formatting and style to Instagram, LinkedIn, or X
-    - age_group.txt: adapts educational depth and emotional tone
-    - response_instruction: sets the output language and regional style
-    """
+        # Ensure language file exists
+        if not os.path.exists(paths["language"]):
+            logger.warning(f"Language file not found for {language}, falling back to English")
+            paths["language"] = os.path.join(PROMPT_DIR, "languages", "en.txt")
 
-    # 1. Detect language of user input
-    detected_language = detect(user_input)  # Example: 'es', 'fr', 'en'
+        # Load components
+        components = {key: self._load_file(path) for key, path in paths.items()}
 
-    base_prompt_path      = os.path.join(BASE_DIR, "prompts", "base.txt")
-    language_prompt_path  = os.path.join(BASE_DIR, "prompts", "languages", f"{detected_language}.txt")
-    platform_prompt_path  = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
-    age_prompt_path       = os.path.join(BASE_DIR, "prompts", "age_groups", f"{age_range}.txt")
+        # Step 5: Build response instruction
+        if use_regional_adaptation:
+            response_instruction = (
+                f"\n\nRespond in {language}, adapting your response to the linguistic style of {region}. "
+                f"Maintain all regional expressions and vocabulary appropriate for {region}."
+            )
+        else:
+            response_instruction = (
+                f"\n\nRespond in {language}. "
+                f"Do not use regional adaptations as the input language doesn't match the selected region."
+            )
+        
+        # Special case for unsupported languages
+        if language not in supported_languages:
+            response_instruction += (
+                "\n\nNote: The user's language isn't fully supported. "
+                "Keep the response simple and easy to understand."
+            )
 
-    # 3. Fallback to English if language-specific file doesn't exist
-    if not os.path.exists(language_prompt_path):
-        language_prompt_path = os.path.join(BASE_DIR, "prompts", "languages", "en.txt")
-
-    # 3. Building the paths of the desired platform and age group
-    #    In the front there are 2 dropdown buttons for the user to select the platform and age group
-    platform_prompt_path = os.path.join(BASE_DIR, "prompts", "platforms", f"{platform}.txt")
-    age_prompt_path = os.path.join(BASE_DIR, "prompts", "age_groups", f"{age_range}.txt")
-    
-    print(f"[DEBUG] Loading language template: {language_prompt_path}")
-    print(f"[DEBUG] Loading platform template: {platform_prompt_path}")
-    print(f"[DEBUG] Loading age template: {age_prompt_path}")
-
-    # 4. Loading the chosen prompts
-    base_prompt     = load_text(base_prompt_path)
-    
-    try:
-        language_prompt = load_text(language_prompt_path)
-        platform_prompt = load_text(platform_prompt_path)
-        age_prompt = load_text(age_prompt_path)
-        print(f"[DEBUG] Templates loaded successfully!")
-    except Exception as e:
-        print(f"[DEBUG] Error loading template: {str(e)}")
-        raise ValueError(f"Error loading templates: {str(e)}")
-
-    # 5. Load dialect prompt if region is provided and mapped
-    normalized_dialect_code = normalize_region(region) if region else None
-
-    if normalized_dialect_code:
-        dialect_prompt_path = os.path.join(BASE_DIR, "prompts", "dialects", f"{normalized_dialect_code}.txt")
-    else:
-        dialect_prompt_path = os.path.join(BASE_DIR, "prompts", "dialects", "default.txt") # This is the fallback
-
-    dialect_prompt = load_text(dialect_prompt_path) if os.path.exists(dialect_prompt_path) else ""
-
-
-    # 6. Response instruction: sets expected output tone/language
-    if detected_language in ["es", "en", "fr"] and region:
-        response_instruction = f"\n\nRespond in {detected_language} adapted to the linguistic style of {region}."
-    else:
-        response_instruction = f"\n\nRespond in {detected_language}. Adapt tone and cultural references accordingly."
-
-    # 7. Combine everything in proper order
-    full_prompt = (
-        f"{base_prompt}\n\n"
-        f"{language_prompt}\n\n"
-        f"{dialect_prompt}\n\n"
-        f"{platform_prompt}\n\n"
-        f"{age_prompt}"
-        f"{response_instruction}"
-    )
-
-    return full_prompt
+        return (
+            f"{components['base']}\n\n"
+            f"{components['language']}\n\n"
+            f"{components['dialect']}\n\n"
+            f"{components['platform']}\n\n"
+            f"{components['age']}\n\n"
+            f"{response_instruction}"
+        )

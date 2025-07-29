@@ -1,3 +1,4 @@
+# Código de Polina
 import json
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
