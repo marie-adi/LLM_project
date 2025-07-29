@@ -5,27 +5,36 @@ import io
 import base64
 
 API_ENDPOINTS = {
-    "Horus": "http://127.0.0.1:8002/content.router",
-    "Isis": "http://127.0.0.1:8002/agent/finance"
+    "Horus - Faster post generation": "http://127.0.0.1:8002/generate/basic",
+    "Isis - Advanced reasoning": "http://127.0.0.1:8002/agent/finance_complete",
+    "Thoth - Academic RAG": "http://127.0.0.1:8002/query/rag"
 }
 
 # Se guarda el último mensaje generado
 def chat_wrapper(message, history, model, audience, platform, region):
+    # Payload común a todos
     payload = {
         "prompt": message,
         "audience": audience,
         "platform": platform,
         "region": region
     }
+
+    # Solo el endpoint "Isis" necesita el campo "model"
+    if model == "Isis - Advanced reasoning":
+        payload["model"] = "llama-3.1-8b-instant"  # o el que quieras usar por defecto
+
     try:
         response = requests.post(API_ENDPOINTS[model], json=payload)
         response.raise_for_status()
-        output = response.json().get("output", "No response received.")
+
+        # "Thoth" usa "response", los otros "output"
+        json_response = response.json()
+        output = json_response.get("output", json_response.get("response", "No response received."))
     except Exception as e:
         output = f"❌ Error: {str(e)}"
 
-    # Devolvemos el mensaje para el chat y lo guardamos como estado
-    return [{"role": "assistant", "content": output}], output
+    return [{"role": "assistant", "content": output}], output 
 
 with gr.Blocks(css="""
 #header {
@@ -47,22 +56,23 @@ with gr.Blocks(css="""
 """) as demo:
 
     # Título
-    gr.Markdown("<div id='header'>🤖 FinancIA — Financial Content Assistant</div>")
+    gr.Markdown("<div id='header'> FinancIA — Financial Content Assistant</div>")
 
     # Selector de modelo
     model_selector = gr.Dropdown(
         choices=[
-            "Horus 🏃 Faster post generation",
-            "Isis 🧠 Advanced reasoning"
+            "Horus - Faster post generation",
+            "Isis - Advanced reasoning",
+             "Thoth - Academic RAG"
         ],
-        value="Horus 🏃 Faster post generation",
+        value="Horus - Faster post generation",
         label="Model"
     )
 
 
     # Ajustes toggle
     show_settings = gr.State(value=False)
-    toggle_btn = gr.Button("⚙️ Segmentation")
+    toggle_btn = gr.Button(" Segmentation")
 
     with gr.Column(visible=False) as config_panel:
         audience = gr.Dropdown(
@@ -138,14 +148,14 @@ with gr.Blocks(css="""
 
     # Caja de texto para copiar (al final del chat)
     output_text = gr.Textbox(
-        label="If you liked it, click to copy the answer. ✂️",
+        label="If you liked it, click to copy the answer.",
         visible=False,
         interactive=False,
         lines=6,
         show_copy_button=True
     )
     # --- Generador de imágenes con Stability AI ---
-    gr.Markdown("### 🎨 Image generator")
+    gr.Markdown("### Image generator")
 
     image_prompt = gr.Textbox(
         label="Describe the image you want to generate",
@@ -153,13 +163,13 @@ with gr.Blocks(css="""
         lines=2
     )
 
-    generate_image_btn = gr.Button("🪄 Generate image")
+    generate_image_btn = gr.Button("Generate image")
     image_output = gr.Image(label="Generated image", type="pil")
 
     def generate_image_ui(prompt):
         print(f"[DEBUG] Prompt received: {prompt}")
         try:
-            response = requests.post("http://127.0.0.1:8002/generate-image", json={"prompt": prompt})
+            response = requests.post("http://127.0.0.1:8002/images/generate", json={"prompt": prompt})
             response.raise_for_status()
 
             image_base64 = response.json()["output"]
