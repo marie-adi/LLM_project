@@ -1,10 +1,10 @@
 import os
 from typing import List
-
 from keybert import KeyBERT
 from rake_nltk import Rake
 import spacy
-import arxiv
+import arxiv  
+from arxiv import Client, SortCriterion
 from loguru import logger
 from deep_translator import GoogleTranslator
 import langdetect
@@ -65,24 +65,22 @@ def build_arxiv_query(
     return query_body
 
 
-def search_arxiv_and_download(
-    query: str,
-    save_dir: str,
-    max_results: int
-) -> List[str]:
+def search_arxiv_and_download(query: str, save_dir: str, max_results: int) -> List[str]:
     os.makedirs(save_dir, exist_ok=True)
     search = arxiv.Search(
         query=query,
         max_results=max_results,
-        sort_by=arxiv.SortCriterion.Relevance
+        sort_by=SortCriterion.Relevance
     )
-    client = arxiv.Client()
+    client = Client()
     downloaded = []
 
-    for i, result in enumerate(client.results(search)):
-        if i >= max_results:
-            break
-        path = os.path.join(save_dir, f"arxiv_{i}.pdf")
+    for result in client.results(search):
+        # 1) ID from PDF is extracted
+        paper_id = result.entry_id.split("/")[-1]  # e.g. "2407.12345"
+        filename = f"{paper_id}.pdf" # the name of the pdf must change everytime otherwise the database will detect "duplicates" since it is using metadata
+        path = os.path.join(save_dir, filename)
+
         try:
             result.download_pdf(filename=path)
             logger.info(f"✅ Downloaded: {path}")

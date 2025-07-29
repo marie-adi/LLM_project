@@ -133,7 +133,6 @@ def query_chroma_db(query_text: str, k: int = 5) -> List[Document]:
 
 
 if __name__ == "__main__":
-    # Make sure the data_pdfs folder exists
     if not os.path.exists(PDF_DATA_DIRECTORY):
         os.makedirs(PDF_DATA_DIRECTORY)
         print(f"Directory '{PDF_DATA_DIRECTORY}' created. Add your PDFs here.")
