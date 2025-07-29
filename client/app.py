@@ -7,10 +7,12 @@ import base64
 API_ENDPOINTS = {
     "Horus - Faster post generation": "http://127.0.0.1:8002/generate/basic",
     "Isis - Advanced reasoning": "http://127.0.0.1:8002/agent/finance_complete",
-    "Thoth - Academic RAG": "http://127.0.0.1:8002/query/rag"
+    "Thoth - Academic RAG": "http://127.0.0.1:8002/query/rag",
+    "Anubis - Ticker Analysis with Yahoo": "http://127.0.0.1:8002/yahoo/financial-story"
+
 }
 
-# Se guarda el último mensaje generado
+# Funcion que envuelve la llamada a la API
 def chat_wrapper(message, history, model, audience, platform, region, llm_model_choice):
     payload = {
         "prompt": message,
@@ -23,17 +25,29 @@ def chat_wrapper(message, history, model, audience, platform, region, llm_model_
     if model == "Isis - Advanced reasoning":
         payload["model"] = llm_model_choice
 
+    # Anubis también puede requerir un nivel de detalle
+    if model == "Anubis - Ticker Analysis with Yahoo":
+        payload["detail_level"] = "simple"  # Puedes cambiar a "advanced" si lo prefieres
+
     try:
         response = requests.post(API_ENDPOINTS[model], json=payload)
         response.raise_for_status()
         json_response = response.json()
-        output = json_response.get("output", json_response.get("response", "No response received."))
+
+        # Manejo especial para Anubis
+        if model == "Anubis - Ticker Analysis with Yahoo":
+            story = json_response.get("story", "No story received.")
+            link = json_response.get("yahoo_link", "")
+            output = f"{story}\n\n🔗 [Ver en Yahoo]({link})"
+        else:
+            output = json_response.get("output", json_response.get("response", "No response received."))
+
     except Exception as e:
         output = f"❌ Error: {str(e)}"
 
     return [{"role": "assistant", "content": output}], output
 
-
+# Interfaz Gradio
 with gr.Blocks(css="""
 :root, html, body, .gradio-container {
     background-color: #e6f0fa !important;
@@ -133,7 +147,7 @@ img {
     margin-top: 1rem;
 }
 """) as demo:
-
+    # Logo de FinancIA
     gr.HTML("""
         <div style="display: flex; justify-content: center; padding: 1rem 0;">
         <img src="https://raw.githubusercontent.com/Bootcamp-IA-P4/Datathon-santuario-animal/main/img/Financia-ia-logo.png" alt="FinancIA Logo" style="height: 120px;" />
@@ -149,7 +163,8 @@ img {
         choices=[
             "Horus - Faster post generation",
             "Isis - Advanced reasoning",
-             "Thoth - Academic RAG"
+            "Thoth - Academic RAG",
+            "Anubis - Ticker Analysis with Yahoo"
         ],
         value="Horus - Faster post generation",
         label="Choose your agent"
@@ -218,13 +233,14 @@ img {
         value="Spanish (Mexico)"
         )
         
+        # Modelo LLM solo para Isis
         llm_model = gr.Dropdown(
             label="LLM model (Isis only)",
             choices=["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "gemma2-9b-it"],
             value="llama-3.1-8b-instant",
             visible=False
         )
-
+        
         llm_info = gr.Markdown(
             """
             Choose the LLM engine for advanced reasoning:
