@@ -134,10 +134,15 @@ img {
 }
 """) as demo:
 
+    gr.HTML("""
+        <div style="display: flex; justify-content: center; padding: 1rem 0;">
+        <img src="https://raw.githubusercontent.com/Bootcamp-IA-P4/Datathon-santuario-animal/main/img/Financia-ia-logo.png" alt="FinancIA Logo" style="height: 120px;" />
+        </div>
+        """)
 
 
     # Título
-    gr.Markdown("<div id='header'> FinancIA — Financial Content Assistant</div>")
+    gr.Markdown("<div id='header'> Financial Content Assistant</div>")
 
     # Selector de modelo
     model_selector = gr.Dropdown(
