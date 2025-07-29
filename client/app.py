@@ -192,8 +192,21 @@ img {
         llm_model = gr.Dropdown(
             label="LLM model (Isis only)",
             choices=["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "gemma2-9b-it"],
-            value="llama-3.1-8b-instant"
-            ) 
+            value="llama-3.1-8b-instant",
+            visible=False
+        )
+
+        llm_info = gr.Markdown(
+            """
+            Choose the LLM engine for advanced reasoning:
+
+            - **LLaMA 3 8B Instant** → Faster, lightweight  
+            - **LLaMA 3 70B Versatile** → Best quality, slower  
+            - **Gemma 9B IT** → Balanced and efficient
+            """,
+            visible=False
+        )
+
             
    # Estado para guardar respuesta
     last_response = gr.State()
@@ -262,5 +275,16 @@ img {
         return not current, gr.update(visible=not current)
 
     toggle_btn.click(toggle_settings, show_settings, [show_settings, config_panel])
+    
+    def toggle_llm_model_visibility(selected_model):
+        is_isis = selected_model == "Isis - Advanced reasoning"
+        return gr.update(visible=is_isis), gr.update(visible=is_isis)
+
+    model_selector.change(
+        fn=toggle_llm_model_visibility,
+        inputs=model_selector,
+        outputs=[llm_model, llm_info]
+    )
+  
 
 demo.launch()
