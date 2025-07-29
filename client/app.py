@@ -152,7 +152,14 @@ img {
     border: 1px solid #ccc;
     max-width: 100%;
     margin-top: 1rem;
+    animation: fadein 0.6s ease-in;
 }
+
+@keyframes fadein {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 """
 ) as demo:
     # Logo de FinancIA
