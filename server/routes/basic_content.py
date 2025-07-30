@@ -15,9 +15,9 @@ class ContentRequest(BaseModel):
 class ContentResponse(BaseModel):
     output: str
 
-# Inicializa el builder y el engine de manera global para reutilizar conexiones
+# Start connections
 prompt_builder = PromptBuilder()
-lm_engine = LMEngine(model_name= GroqModel.LLAMA3_8B)
+lm_engine = LMEngine(model_name= GroqModel.GEMMA_9B)
 
 @router.post(
     "/basic/",
@@ -28,7 +28,7 @@ async def generate_content(request: ContentRequest):
     try:
         logger.info(f"Received content request: {request}")
 
-        # 1) Usar build_prompt en lugar de build
+        # 1)
         enriched_prompt = prompt_builder.build_prompt(
             user_input=request.prompt,
             platform=request.platform,
@@ -36,7 +36,7 @@ async def generate_content(request: ContentRequest):
             region=request.region
         )
 
-        # 2) Llamada al modelo Llama Instant (Groq API)
+        # 2) 
         output = await lm_engine.ask(enriched_prompt)
 
         return ContentResponse(output=output)

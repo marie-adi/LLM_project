@@ -79,7 +79,7 @@ def add_documents_to_chroma(chunks: List[Document], embedding_function):
     logger.info(f"Preparing to insert {len(new_chunks)} new chunks.")
 
     if not new_chunks:
-        loger.warning("No new documents to insert.")
+        logger.warning("No new documents to insert.")
         return
 
     batch_size = 64
