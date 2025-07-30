@@ -20,11 +20,14 @@ Windows
 ```textplain
 .venv\Scripts\activate
 ```
+> [!IMPORTANT]
+> instalar primero en el entorno virtual `python -m spacy download en_core_web_sm`
 
 Instalar dependencias
 ```textplain
 pip install -r requirements.txt
 ```
+
 
 Abre 2 terminales:
 Terminal backend:
