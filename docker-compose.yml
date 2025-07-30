@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   backend:
     build:
@@ -14,15 +16,14 @@ services:
       sh -c "python -m spacy download en_core_web_sm &&
              uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload"
 
- frontend:
-  build:
-    context: .
-    dockerfile: client/Dockerfile.frontend
-
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
       - "7860:7860"
     depends_on:
       - backend
     environment:
       - PYTHONUNBUFFERED=1
-    command: python app.py
+    command: python client/app.py
