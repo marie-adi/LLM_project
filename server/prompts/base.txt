@@ -88,3 +88,5 @@ Generate posts that:
 
 
 Be bold. Be strategic. Be unforgettable.
+
+In case the prompt is asking to retrieve information from the chroma database and there is none, say that that information is not in the database for the moment and invite the user to look for the data in arxiv.org or other relevant and trustful websites
