@@ -5,10 +5,10 @@ import io
 import base64
 
 API_ENDPOINTS = {
-    "Horus - Faster post generation": "http://127.0.0.1:8002/generate/basic",
-    "Isis - Advanced reasoning": "http://127.0.0.1:8002/agent/finance_complete",
-    "Thoth - Academic RAG": "http://127.0.0.1:8002/query/rag",
-    "Anubis - Ticker Analysis with Yahoo": "http://127.0.0.1:8002/yahoo/financial-story"
+    "Horus - Faster post generation": "http://127.0.0.1:8000/generate/basic",
+    "Isis - Advanced reasoning": "http://127.0.0.1:8000/agent/finance_complete",
+    "Thoth - Academic RAG": "http://127.0.0.1:8000/query/rag",
+    "Anubis - Ticker Analysis with Yahoo": "http://127.0.0.1:8000/yahoo/financial-story"
 
 }
 
@@ -315,22 +315,18 @@ img {
     def generate_image_ui(prompt):
         print(f"[DEBUG] Prompt received: {prompt}")
         try:
-            response = requests.post("http://127.0.0.1:8002/images/generate", json={"prompt": prompt})
+            response = requests.post("http://127.0.0.1:8000/images/generate", json={"prompt": prompt})
             response.raise_for_status()
 
-            image_base64 = response.json()["output"]
-
-            # Decodificar base64 a bytes
-            image_bytes = base64.b64decode(image_base64)
-
-            # Convertir bytes a imagen PIL
-            image = Image.open(io.BytesIO(image_bytes))
+            # Convertir bytes directamente a imagen PIL
+            image = Image.open(io.BytesIO(response.content))
             print("[DEBUG] Image generated and converted successfully")
             return image
 
         except Exception as e:
             print(f"[ERROR] Error generating image: {e}")
             return None
+
     # Conectar el botón de generación de imagen con la función
     image_output = gr.Image(label="Generated image", type="pil")
     generate_image_btn.click(fn=generate_image_ui, inputs=image_prompt, outputs=image_output)
