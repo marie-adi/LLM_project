@@ -93,7 +93,7 @@ input, textarea, select {
 
 /* Botones */
 button:not(.copy-btn):not(.copy-button) {
-    background-color: #10b981 !important;
+    background-color: #1e40af !important;
     color: white !important;
     font-weight: bold !important;
     border-radius: 6px !important;
@@ -101,7 +101,7 @@ button:not(.copy-btn):not(.copy-button) {
     border: none !important;
 }
 button:hover:not(.copy-btn):not(.copy-button) {
-    background-color: #0f766e !important;
+    background-color: #4a66bf !important;
 }
 
 /* Títulos, labels */
@@ -355,3 +355,6 @@ img {
   
 
 demo.launch()
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860)
