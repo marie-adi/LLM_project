@@ -56,9 +56,9 @@ def generar_post(input: str) -> str:
 
     # Selección del modelo
     if model == "turbo":
-        llm_selected = llm_turbo
+        llm_selected = llm_turbo # versatil
     else:
-        llm_selected = llm_llama
+        llm_selected = llm_llama # instant
         
     print(f"[DEBUG] Loading llm model: {model}")
 

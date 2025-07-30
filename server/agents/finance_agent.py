@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
-from server.tools.yahoo_data import YahooFetcher
-from server.tools.pdf_fetcher import PDFRetriever
-from server.services.lm_engine import LMEngine
+from server.tools.yahoo_data import YahooFetcher  # Yahoo Tickers
+from server.tools.pdf_fetcher import PDFRetriever # RAG
+from server.services.lm_engine import LMEngine    # Connection to GROQ
 from loguru import logger
 from datetime import datetime
 
