@@ -12,7 +12,6 @@
 ## 🧭 Table of Contents
 
 - [📌 Project Overview](#-project-overview)
-- [📎 Useful links](#-useful-links)
 - [🎯 Target Audience](#-target-audience)
 - [⚙️ Features & Limitations](#️-features--limitations)
 - [🚀 Future Improvements](#-future-improvements)
@@ -51,20 +50,6 @@ This solution seeks to streamline the creation of financial content, maintaining
 - ### 🎯 Audience Segmentation  
   Tailor content to specific **demographics** — including **age group**, **language**, and **geographical region** — to maximize **relevance** and **engagement**.
 
----
-## 📎 Useful links
-
-- WebSite
-
-
-  
-- Documentation
-  
-  
-  
-- Presentation
-  
-  https://www.canva.com/design/DAGt-gyFBvA/4lWmKpnn3wpufBr-Bo2log/edit?utm_content=DAGt-gyFBvA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 ---
 
 ## 🎯 Target Audience
