@@ -3,13 +3,16 @@ import requests
 from PIL import Image
 import io
 import base64
+import os
+
+BASE_URL = os.getenv("BACKEND_URL", "http://backend:8000")
+
 
 API_ENDPOINTS = {
-    "Horus - Faster post generation": "http://127.0.0.1:8000/generate/basic",
-    "Isis - Advanced reasoning": "http://127.0.0.1:8000/agent/finance_complete",
-    "Thoth - Academic RAG": "http://127.0.0.1:8000/query/rag",
-    "Anubis - Ticker Analysis with Yahoo": "http://127.0.0.1:8000/yahoo/financial-story"
-
+    "Horus - Faster post generation": f"{BASE_URL}/generate/basic",
+    "Isis - Advanced reasoning":      f"{BASE_URL}/agent/finance_complete",
+    "Thoth - Academic RAG":           f"{BASE_URL}/query/rag",
+    "Anubis - Ticker Analysis with Yahoo": f"{BASE_URL}/yahoo/financial-story",
 }
 
 # Funcion que envuelve la llamada a la API

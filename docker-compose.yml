@@ -25,3 +25,6 @@ services:
       - ./client:/app/client
     environment:
       - PYTHONUNBUFFERED=1
+      - BACKEND_URL=http://backend:8000 
+    depends_on:
+      - backend
