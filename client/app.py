@@ -160,6 +160,15 @@ img {
     to { opacity: 1; transform: scale(1); }
 }
 
+#segmentation-btn {
+    margin-top: 30px;
+}
+
+#generate-image-btn {
+    margin-top: 30px;
+}
+
+
 """
 ) as demo:
     # Logo de FinancIA
@@ -172,23 +181,23 @@ img {
 
     # Título
     gr.Markdown("<div id='header'> Financial Content Assistant</div>")
-
-    # Selector de modelo
-    model_selector = gr.Dropdown(
-        choices=[
-            "Horus - Faster post generation",
-            "Isis - Advanced reasoning",
-            "Thoth - Academic RAG",
-            "Anubis - Ticker Analysis with Yahoo"
-        ],
-        value="Horus - Faster post generation",
-        label="Choose your agent"
-    )
-
-
-    # Ajustes toggle
     show_settings = gr.State(value=False)
-    toggle_btn = gr.Button(" Segmentation")
+
+    with gr.Row():
+        model_selector = gr.Dropdown(
+            choices=[
+                "Horus - Faster post generation",
+                "Isis - Advanced reasoning",
+                "Thoth - Academic RAG",
+                "Anubis - Ticker Analysis with Yahoo"
+            ],
+            value="Horus - Faster post generation",
+            label="Choose your agent",
+            scale=7
+        )
+
+        toggle_btn = gr.Button("Segmentation", scale=3, elem_id="segmentation-btn")
+
 
     with gr.Column(visible=False) as config_panel:
         audience = gr.Dropdown(
@@ -293,14 +302,15 @@ img {
     # --- Generador de imágenes con Stability AI ---
     gr.Markdown("### Image generator")
 
-    image_prompt = gr.Textbox(
-        label="Describe the image you want to generate",
-        placeholder="Example: A financial robot on the stock market",
-        lines=2
-    )
+    with gr.Row():
+        image_prompt = gr.Textbox(
+            label="Describe the image you want to generate",
+            placeholder="Example: A financial robot on the stock market",
+            lines=1,
+            scale=7
+        )
+        generate_image_btn = gr.Button("Generate image", scale=3, elem_id="generate-image-btn")
 
-    generate_image_btn = gr.Button("Generate image")
-    image_output = gr.Image(label="Generated image", type="pil")
 
     def generate_image_ui(prompt):
         print(f"[DEBUG] Prompt received: {prompt}")
@@ -322,6 +332,7 @@ img {
             print(f"[ERROR] Error generating image: {e}")
             return None
     # Conectar el botón de generación de imagen con la función
+    image_output = gr.Image(label="Generated image", type="pil")
     generate_image_btn.click(fn=generate_image_ui, inputs=image_prompt, outputs=image_output)
 
 
