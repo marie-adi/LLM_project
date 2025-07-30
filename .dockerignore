@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pkl
+*.log
+*.db
+*.pdf
+*.zip
+*.gz
+.env
+client/__pycache__/
+server/database/data_pdfs/

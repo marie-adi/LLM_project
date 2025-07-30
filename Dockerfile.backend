@@ -1,0 +1,24 @@
+FROM python:3.10
+
+WORKDIR /app
+
+# Sistema: compilar dependencias
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar e instalar requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Modelos que se deben de descargar por separado de los requirements
+RUN python -m spacy download es_core_news_sm && \
+    python -m spacy download en_core_web_sm && \
+    python -m spacy download fr_core_news_sm && \
+    python -m spacy download it_core_news_sm
+
+COPY ./server ./server
+
+
+CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000"]
